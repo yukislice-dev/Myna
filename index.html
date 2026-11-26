@@ -1472,11 +1472,17 @@
                     transcriptOutput.textContent = transcripts.join('\n\n');
                     transcriptOutput.scrollTop = transcriptOutput.scrollHeight;
 
-                    // 話者ラベルの抽出（引き継ぎ用）
-                    const matches = chunkText.match(/【[^】]+】/g);
-                    if (matches) {
-                        matches.forEach(m => detectedSpeakers.add(m));
-                    }
+                    // 話者ラベルの抽出（引き継ぎ用：「話者A：」および「【話者A】」に対応）
+                    const speakerLines = chunkText.split('\n');
+                    speakerLines.forEach(line => {
+                        const mColon = line.match(/^([^：\n]{1,20})：/);
+                        if (mColon) {
+                            detectedSpeakers.add(mColon[1].trim());
+                        } else {
+                            const mBracket = line.match(/^【([^】]+)】/);
+                            if (mBracket) detectedSpeakers.add(`【${mBracket[1]}】`);
+                        }
+                    });
                 }
 
                 // 全パート結合
@@ -1726,62 +1732,152 @@
                         ]
                     }]
                 });
+        // Gemini API 文字起こし呼び出し
+        async function callGeminiTranscribe(base64Audio, mimeType, chunkIndex, totalChunks, previousSpeakersHint) {
+            // 先生の厳格な7つの条件をシステム指示として設定
+            const systemInstruction = `あなたは学校の会議や研修の記録を担当する極めて忠実な書記です。
+以下の7つの条件を**絶対厳守**して、音声を正確に文字起こししてください。
 
-                const blob = await Packer.toBlob(doc);
-                triggerDownload(blob, `${info.fileNameBase}.docx`);
-                showToast(`「${info.fileNameBase}.docx」を保存しました`, "success");
-            } catch (err) {
-                console.error("Word generation error:", err);
-                showToast("Wordファイルの生成中にエラーが発生しました", "error");
+【絶対厳守の7条件】
+1. 要約・言い換え・文の整理・補足をしない。聞こえた言葉をそのまま書く。
+2. 聞き取れない、自信がない箇所は推測で埋めず、「［聞き取り不能］」と書く。音声にない発言、相槌、締めの言葉を絶対に作らない。
+3. 言い淀み、言い直し、繰り返し、「えー」「あー」「えっと」「あのー」などの純粋なフィラーのみ省略して良い。
+4. 数え上げ・言い直しも省略しない。「下から1,2,3,4行目」などは短縮せずそのまま書く。
+5. 話者が変わるたびに必ず改行し、「話者A：発言内容」の形式で書く（最初は話者A、話者B、話者C…と分類する）。
+   - 短い相槌や質問も、別の話者の発言として独立させる。他の話者の発言に混ぜない。
+   - 複数の話者の発言を一つの段落にまとめない。
+6. 会議の内容を判断・評価・補足しない。日付や肩書きなど、音声にない情報を書かない。
+7. 録音の最初から最後まで、雑談・終了後の会話も含めて全て書く。途中で省略しない。
+
+【出力ルール】
+- 余計な挨拶（「はい、文字起こしを行います」など）や解説、見出しは一切出力せず、文字起こし本文のみを出力すること。`;
+
+            let userPrompt = `この音声データ（全${totalChunks}パート中の第${chunkIndex + 1}パート）を、上記7つの条件に厳密に従って最初から最後まで省略せずに文字起こししてください。`;
+            if (previousSpeakersHint) {
+                userPrompt += `\n※前のパートでは以下の話者名が使われています。同じ人物と思われる場合は同じ話者名を引き継いでください：\n${previousSpeakersHint}`;
             }
-        });
-
-        // ==========================================
-        // 8. AI要約・議事録ファイルの作成＆直接ダウンロード機能
-        // ==========================================
-        async function callGeminiSummarizeMinutes(transcript) {
-            const systemInstruction = `あなたは学校の職員会議や校内研修・講演の記録をまとめる熟練の書記です。
-提供された「文字起こしテキスト」をもとに、先生方が後から読み返して一目で内容や学び、決定事項を把握できる、綺麗に整理された「記録・まとめ文書」を作成してください。
-
-【出力フォーマット（Markdown形式）】
-## 1. 概要・テーマ
-（今回の会議や研修の全体テーマ・目的を2〜3行で簡潔にまとめる）
-
-## 2. 主な内容・ポイント（トピック別整理）
-（話された流れに沿って話題や講義の章立てごとに小見出し「### 」や箇条書き「- 」を使い、誰がどのような発言・解説をしたかが分かるように整理する）
-
-## 3. 決定事項・今後の対応
-（※会議などで合意・決定したことや今後のアクションが話し合われていた場合のみ、この項目を作成して箇条書きでまとめる。研修や講演など決定事項がない内容の場合は、このセクション自体を出力せず省略すること）
-
-## 4. まとめ・重要キーワード
-（研修での重要な学びや、会議全体の結論・ポイントを簡潔に締めくくる）
-
-【作成時のルール】
-- 事実に基づき、推測や勝手な創作を交えないこと。
-- 余計な挨拶（「要約を作成しました」など）は一切書かず、本文のみを出力すること。`;
 
             const payload = {
                 contents: [
                     {
                         role: "user",
                         parts: [
-                            { text: `以下の文字起こしテキストを、内容（会議か研修か）に合わせて綺麗に整理・要約してください。\n\n---\n${transcript}` }
+                            { text: userPrompt },
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64Audio
+                                }
+                            }
                         ]
                     }
                 ],
                 systemInstruction: {
                     parts: [{ text: systemInstruction }]
+                },
+                generationConfig: {
+                    temperature: 0.1
                 }
             };
 
             return await fetchGeminiWithFallback(payload);
         }
+        // ==========================================
+        // 6. 話者名の一括置換機能
+        // ==========================================
+        function buildSpeakerReplacer(text, preservedInputs = {}) {
+            const panel = document.getElementById('speaker-replace-panel');
+            const list = document.getElementById('speaker-replace-list');
+            list.innerHTML = '';
 
-        async function getOrGenerateMinutesText() {
-            // すでに同じ文字起こし内容から生成済みの場合はキャッシュを即座に返す
-            if (cachedMinutesText && cachedMinutesSource === finalTranscriptText) {
-                return cachedMinutesText;
+            // 行頭の「話者A：」または「【話者A】」形式のラベルを重複なく抽出
+            const lines = text.split('\n');
+            const extractedTokens = [];
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                const mColon = trimmed.match(/^([^：\n]{1,20})：/);
+                if (mColon) {
+                    extractedTokens.push(`${mColon[1].trim()}：`);
+                } else {
+                    const mBracket = trimmed.match(/^(【[^】]+】)/);
+                    if (mBracket) {
+                        extractedTokens.push(mBracket[1]);
+                    }
+                }
+            });
+
+            const uniqueSpeakers = [...new Set(extractedTokens)];
+            if (uniqueSpeakers.length === 0) {
+                panel.classList.add('hidden');
+                return;
             }
+
+            uniqueSpeakers.forEach((speakerToken) => {
+                const isColonFormat = speakerToken.endsWith('：');
+                const cleanName = isColonFormat ? speakerToken.slice(0, -1) : speakerToken.replace(/[【】]/g, '');
+                const savedDraft = preservedInputs[speakerToken] || '';
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "theme-input flex items-center space-x-1.5 p-2 rounded-xl";
+                itemDiv.innerHTML = `
+                    <span class="text-xs font-bold text-myna-amber shrink-0 px-1.5">${escapeHtml(cleanName)}</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 theme-text-muted shrink-0"></i>
+                    <input type="text" placeholder="例：〇〇先生" data-original="${escapeHtml(speakerToken)}" value="${escapeHtml(savedDraft)}"
+                        class="speaker-input flex-1 min-w-0 text-xs px-2.5 py-1.5 bg-transparent border border-slate-500/30 rounded-lg focus:outline-none focus:border-myna-amber">
+                    <button type="button" class="btn-apply-speaker px-2.5 py-1.5 bg-myna-amber hover:bg-myna-amberHover text-slate-950 font-bold text-xs rounded-lg shrink-0 transition cursor-pointer">
+                        置換
+                    </button>
+                `;
+                list.appendChild(itemDiv);
+            });
+
+            lucide.createIcons();
+            panel.classList.remove('hidden');
+
+            // 置換ボタンのイベント登録
+            list.querySelectorAll('.btn-apply-speaker').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    const container = e.target.closest('div');
+                    const input = container.querySelector('.speaker-input');
+                    const originalToken = input.getAttribute('data-original');
+                    const newName = input.value.trim();
+
+                    if (!newName) {
+                        showToast("新しい名前を入力してください", "info");
+                        return;
+                    }
+
+                    // 他の話者ボックスに入力途中だった内容をすべて退避・保持する
+                    const preservedInputs = {};
+                    list.querySelectorAll('.speaker-input').forEach((otherInput) => {
+                        const key = otherInput.getAttribute('data-original');
+                        if (key !== originalToken && otherInput.value.trim() !== '') {
+                            preservedInputs[key] = otherInput.value;
+                        }
+                    });
+
+                    const isColonFormat = originalToken.endsWith('：');
+                    const cleanNewName = newName.replace(/[【】：:]/g, '');
+                    const newToken = isColonFormat ? `${cleanNewName}：` : `【${cleanNewName}】`;
+
+                    // 行頭の話者プレフィックスを正確に一括置換（本文中の同単語への誤爆を防止）
+                    finalTranscriptText = finalTranscriptText
+                        .split('\n')
+                        .map(line => line.startsWith(originalToken) ? newToken + line.slice(originalToken.length) : line)
+                        .join('\n');
+
+                    document.getElementById('transcript-output').textContent = finalTranscriptText;
+
+                    // 話者名が変わったので議事録キャッシュをリセットし、履歴データも更新
+                    cachedMinutesText = "";
+                    cachedMinutesSource = "";
+                    upsertCurrentTranscriptToHistory();
+
+                    const displayOld = isColonFormat ? originalToken.slice(0, -1) : originalToken;
+                    showToast(`「${displayOld}」を「${cleanNewName}」に一括置換しました`, "success");
+                    buildSpeakerReplacer(finalTranscriptText, preservedInputs);
+                });
+            });
+        }
             const generated = await callGeminiSummarizeMinutes(finalTranscriptText);
             cachedMinutesText = generated;
             cachedMinutesSource = finalTranscriptText;
@@ -1870,26 +1966,26 @@
                             })
                         );
                     } else if (trimmed.startsWith('### ')) {
-                        bodyParagraphs.push(
-                            new Paragraph({
-                                text: trimmed.replace(/^###\s+/, ''),
-                                heading: HeadingLevel.HEADING_3,
-                                spacing: { before: 180, after: 80 }
-                            })
-                        );
-                    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-                        const bulletText = trimmed.replace(/^[-*]\s+/, '').replace(/\*\*/g, '');
+                    // 「話者A：」または「【話者A】」が含まれる行は話者名を太字にして見やすく整形
+                    const speakerMatch = trimmed.match(/^([^：\n]{1,20}：|【[^】]+】)(.*)$/);
+                    if (speakerMatch) {
                         bodyParagraphs.push(
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: bulletText,
+                                        text: speakerMatch[1],
+                                        bold: true,
+                                        color: "1E293B",
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    }),
+                                    new TextRun({
+                                        text: speakerMatch[2],
                                         size: 22,
                                         font: "游ゴシック"
                                     })
                                 ],
-                                bullet: { level: 0 },
-                                spacing: { after: 100, line: 320 }
+                                spacing: { after: 160, line: 340 }
                             })
                         );
                     } else {
