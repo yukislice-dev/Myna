@@ -200,30 +200,39 @@
     <header class="myna-header-bg text-white shadow-xl border-b border-white/10">
         <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
             <div class="flex items-center space-x-3.5 min-w-0">
-                <!-- 大きく存在感のある九官鳥（Myna）カスタムSVGロゴ -->
-                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950 border border-amber-400/40 flex items-center justify-center shadow-lg shadow-amber-500/15 shrink-0 p-2">
-                    <svg class="w-full h-full" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- 九官鳥の体（艶やかな漆黒ブルー） -->
-                        <path d="M16 44C16 28 24 16 36 16C43 16 48 21 48 28C48 39 40 48 26 48H14L16 44Z" fill="#1E293B" stroke="#F8FAFC" stroke-width="2.2" stroke-linejoin="round"/>
-                        <!-- 羽のハイライト -->
-                        <path d="M24 38C28 32 35 30 41 33" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" opacity="0.65"/>
-                        <!-- 白い翼の斑点（九官鳥の特徴） -->
-                        <path d="M25 35C29 33 34 34 36 37C33 39 28 39 25 35Z" fill="#F8FAFC"/>
-                        <!-- 鮮やかな黄色いくちばし -->
-                        <path d="M47 23L58 26L47 29.5V23Z" fill="#F59E0B" stroke="#FBBF24" stroke-width="1.2" stroke-linejoin="round"/>
-                        <!-- 目の周りの黄色い肉垂（九官鳥の特徴） -->
-                        <path d="M37 22C39 22 41 23.5 41 25.5" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-                        <!-- 瞳 -->
-                        <circle cx="40" cy="23.5" r="2.2" fill="#FFFFFF"/>
-                        <circle cx="40.5" cy="23.5" r="1" fill="#0F172A"/>
-                        <!-- 音声の波紋アクセント -->
-                        <path d="M10 26C8 29 8 33 10 36" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M6 23C3 28 3 34 6 39" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                <!-- 大きく存在感のある九官鳥（Myna）カスタムSVGロゴ（ホバー時に由来のツールチップを表示） -->
+                <div class="group relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950 border border-amber-400/40 flex items-center justify-center shadow-lg shadow-amber-500/15 shrink-0 p-0 cursor-help overflow-visible" title="Myna（マイナ）＝ 人の言葉を忠実に真似る『九官鳥』が由来の文字起こしツール">
+                    <svg class="w-[118%] h-[118%] transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)]" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- ころんとした二頭身の丸い体 -->
+                        <path d="M16 44C16 28 24 16 36 16C44 16 49 22 49 31C49 41 41 48 28 48H14L16 44Z" fill="#1E293B" stroke="#F8FAFC" stroke-width="2.4" stroke-linejoin="round"/>
+                        <!-- ぷっくりお腹の艶ハイライト -->
+                        <path d="M26 42C32 45 40 43 43 37" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                        <!-- 九官鳥の白い翼の模様 -->
+                        <path d="M24 35C29 33 34 34 36 37C33 39 27 39 24 35Z" fill="#F8FAFC"/>
+                        <!-- ちょこんとした黄色いくちばし -->
+                        <path d="M48 24L57 26.5L48 30V24Z" fill="#F59E0B" stroke="#FBBF24" stroke-width="1.2" stroke-linejoin="round"/>
+                        <!-- 目の後ろの黄色い肉垂 -->
+                        <path d="M37 21.5C39 20.5 41 21.5 41 23.5" stroke="#F59E0B" stroke-width="2.8" stroke-linecap="round"/>
+                        <!-- パッチリ大きなおめめ -->
+                        <circle cx="42" cy="25.5" r="3.4" fill="#FFFFFF"/>
+                        <circle cx="42.8" cy="25.5" r="1.8" fill="#0F172A"/>
+                        <circle cx="43.5" cy="24.6" r="0.85" fill="#FFFFFF"/>
+                        <!-- ピンクのほっぺ -->
+                        <ellipse cx="41" cy="30.5" rx="2.4" ry="1.4" fill="#FB7185" opacity="0.85"/>
+                        <!-- ちょこんとした足 -->
+                        <path d="M28 48V53M25 53H31M36 48V53M33 53H39" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
+                    <!-- ホバー時にふっと現れる由来ツールチップ -->
+                    <div class="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute left-0 top-full mt-2 w-60 p-2.5 rounded-xl bg-slate-900/95 border border-amber-400/30 text-[11px] text-slate-200 shadow-xl z-40 leading-relaxed">
+                        <span class="font-bold text-amber-300">Myna（マイナ）</span>とは、人の言葉を忠実に真似る<strong class="text-white">「九官鳥」</strong>の英語名です。
+                    </div>
                 </div>
                 <div class="truncate">
-                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">Myna</h1>
-                    <p class="text-xs text-slate-300 tracking-wide truncate">会議・研修 高精度文字起こしツール</p>
+                    <div class="flex items-baseline space-x-2">
+                        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">Myna</h1>
+                        <span class="text-xs font-medium text-amber-300/90 tracking-widest">マイナ</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300 tracking-wide truncate mt-0.5">会議・研修　高精度文字起こしツール</p>
                 </div>
             </div>
 
@@ -450,11 +459,10 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-                        <button id="btn-save-audio-local" type="button" disabled title="ブラウザ内に一時保存（再読み込み後も復元可能）"
-                            class="theme-input flex items-center space-x-1.5 px-3 py-2.5 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:border-emerald-400 rounded-xl transition cursor-pointer">
-                            <i data-lucide="bookmark-plus" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            <span>音声を一時保存</span>
-                        </button>
+                        <span id="auto-save-status-pill" class="hidden items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                            <span>自動一時保存済</span>
+                        </span>
                         <button id="btn-download-audio" type="button" disabled title="音声ファイルを端末にダウンロード"
                             class="theme-input flex items-center space-x-1.5 px-3 py-2.5 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:border-myna-amber rounded-xl transition cursor-pointer">
                             <i data-lucide="download" class="w-3.5 h-3.5 text-myna-amber"></i>
@@ -659,7 +667,7 @@
         // ==========================================
         (function setupPWA() {
             try {
-                // 九官鳥アイコン（512x512）をCanvasで描画してPNG DataURL化（iOS Safari対応）
+                // 候補A（まるっこちび九官鳥）アイコン（512x512）をCanvasで描画してPNG DataURL化（iOS Safari対応）
                 const iconCanvas = document.createElement('canvas');
                 iconCanvas.width = 512;
                 iconCanvas.height = 512;
@@ -672,45 +680,87 @@
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, 512, 512);
 
-                // 九官鳥のシルエット描画
+                // 候補A：まるっこちび九官鳥の描画
                 ctx.save();
-                ctx.translate(64, 64);
-                ctx.scale(6, 6);
+                ctx.translate(48, 48);
+                ctx.scale(6.5, 6.5);
+
+                // 体
                 ctx.fillStyle = '#1E293B';
                 ctx.strokeStyle = '#F8FAFC';
-                ctx.lineWidth = 2.2;
+                ctx.lineWidth = 2.4;
+                ctx.lineJoin = 'round';
                 ctx.beginPath();
                 ctx.moveTo(16, 44);
                 ctx.bezierCurveTo(16, 28, 24, 16, 36, 16);
-                ctx.bezierCurveTo(43, 16, 48, 21, 48, 28);
-                ctx.bezierCurveTo(48, 39, 40, 48, 26, 48);
+                ctx.bezierCurveTo(44, 16, 49, 22, 49, 31);
+                ctx.bezierCurveTo(49, 41, 41, 48, 28, 48);
                 ctx.lineTo(14, 48);
                 ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
 
-                // 白い翼の斑点
+                // 白い翼の模様
                 ctx.fillStyle = '#F8FAFC';
                 ctx.beginPath();
-                ctx.moveTo(25, 35);
-                ctx.quadraticCurveTo(31, 33, 36, 37);
-                ctx.quadraticCurveTo(31, 39, 25, 35);
+                ctx.moveTo(24, 35);
+                ctx.quadraticCurveTo(29, 33, 34, 34);
+                ctx.quadraticCurveTo(36, 35.5, 36, 37);
+                ctx.quadraticCurveTo(33, 39, 27, 39);
+                ctx.quadraticCurveTo(25, 37, 24, 35);
                 ctx.fill();
 
                 // くちばし
                 ctx.fillStyle = '#F59E0B';
+                ctx.strokeStyle = '#FBBF24';
+                ctx.lineWidth = 1.2;
                 ctx.beginPath();
-                ctx.moveTo(47, 23);
-                ctx.lineTo(58, 26);
-                ctx.lineTo(47, 29.5);
+                ctx.moveTo(48, 24);
+                ctx.lineTo(57, 26.5);
+                ctx.lineTo(48, 30);
                 ctx.closePath();
                 ctx.fill();
+                ctx.stroke();
 
-                // 瞳
+                // 黄色い肉垂
+                ctx.strokeStyle = '#F59E0B';
+                ctx.lineWidth = 2.8;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(37, 21.5);
+                ctx.quadraticCurveTo(39, 20.5, 41, 23.5);
+                ctx.stroke();
+
+                // パッチリおめめ
                 ctx.fillStyle = '#FFFFFF';
                 ctx.beginPath();
-                ctx.arc(40, 23.5, 2.3, 0, Math.PI * 2);
+                ctx.arc(42, 25.5, 3.4, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.fillStyle = '#0F172A';
+                ctx.beginPath();
+                ctx.arc(42.8, 25.5, 1.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(43.5, 24.6, 0.85, 0, Math.PI * 2);
+                ctx.fill();
+
+                // ほっぺ
+                ctx.fillStyle = 'rgba(251, 113, 133, 0.85)';
+                ctx.beginPath();
+                ctx.ellipse(41, 30.5, 2.4, 1.4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // ちょこんとした足
+                ctx.strokeStyle = '#F59E0B';
+                ctx.lineWidth = 2.2;
+                ctx.beginPath();
+                ctx.moveTo(28, 48); ctx.lineTo(28, 53);
+                ctx.moveTo(25, 53); ctx.lineTo(31, 53);
+                ctx.moveTo(36, 48); ctx.lineTo(36, 53);
+                ctx.moveTo(33, 53); ctx.lineTo(39, 53);
+                ctx.stroke();
+
                 ctx.restore();
 
                 const iconDataUrl = iconCanvas.toDataURL('image/png');
@@ -1243,7 +1293,22 @@
                         if (e.data.size > 0) audioChunks.push(e.data);
                     };
 
+                    // 録音中は10秒ごとにブラウザ（IndexedDB）へ自動バックアップ保存
+                    const autoSaveInterval = setInterval(async () => {
+                        if (!isRecording || audioChunks.length === 0) return;
+                        try {
+                            const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                            const partialBlob = new Blob(audioChunks, { type: mimeType });
+                            const ext = mimeType.includes('mp4') ? 'm4a' : 'webm';
+                            const info = getResolvedMeetingTitle();
+                            await saveAudioToIndexedDB(partialBlob, `${info.fileNameBase}_録音中バックアップ.${ext}`);
+                        } catch (e) {
+                            console.warn('Auto-save during recording failed:', e);
+                        }
+                    }, 10000);
+
                     mediaRecorder.onstop = () => {
+                        clearInterval(autoSaveInterval);
                         const mimeType = mediaRecorder.mimeType || 'audio/webm';
                         const blob = new Blob(audioChunks, { type: mimeType });
                         const ext = mimeType.includes('mp4') ? 'm4a' : 'webm';
@@ -1331,23 +1396,7 @@
                 handleUploadedFile(e.dataTransfer.files[0]);
             }
         });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                handleUploadedFile(e.target.files[0]);
-            }
-        });
-
-        function handleUploadedFile(file) {
-            if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
-                showToast("音声ファイル（mp3, m4a, wavなど）を選択してください。", "error");
-                return;
-            }
-            setAudioReady(file, file.name);
-            showToast(`「${file.name}」を読み込みました`, "success");
-        }
-
-        function setAudioReady(blob, fileName) {
+        function setAudioReady(blob, fileName, skipAutoSave = false) {
             currentAudioBlob = blob;
             currentAudioName = fileName;
 
@@ -1374,13 +1423,27 @@
             const iconBox = document.getElementById('audio-ready-icon-box');
             iconBox.className = "w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center shrink-0 shadow-sm transition-colors";
 
-            document.getElementById('btn-save-audio-local').disabled = false;
             document.getElementById('btn-download-audio').disabled = false;
             document.getElementById('btn-clear-audio').disabled = false;
             document.getElementById('btn-start-transcribe').disabled = false;
 
             audioStatusBadge.textContent = "音声準備完了";
             audioStatusBadge.className = "text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+            // 自動一時保存の実行
+            const autoSavePill = document.getElementById('auto-save-status-pill');
+            if (!skipAutoSave) {
+                saveAudioToIndexedDB(blob, fileName)
+                    .then(() => {
+                        autoSavePill.classList.remove('hidden');
+                        autoSavePill.classList.add('inline-flex');
+                        refreshSavedAudioBar();
+                    })
+                    .catch((e) => console.warn('Auto-save failed:', e));
+            } else {
+                autoSavePill.classList.remove('hidden');
+                autoSavePill.classList.add('inline-flex');
+            }
         }
 
         document.getElementById('btn-clear-audio').addEventListener('click', () => {
@@ -1403,7 +1466,10 @@
             const iconBox = document.getElementById('audio-ready-icon-box');
             iconBox.className = "w-11 h-11 rounded-xl bg-slate-500/20 theme-text-secondary flex items-center justify-center shrink-0 shadow-sm transition-colors";
 
-            document.getElementById('btn-save-audio-local').disabled = true;
+            const autoSavePill = document.getElementById('auto-save-status-pill');
+            autoSavePill.classList.add('hidden');
+            autoSavePill.classList.remove('inline-flex');
+
             document.getElementById('btn-download-audio').disabled = true;
             document.getElementById('btn-clear-audio').disabled = true;
             document.getElementById('btn-start-transcribe').disabled = true;
@@ -1498,22 +1564,6 @@
         // 起動時に一時保存音声の有無をチェック
         refreshSavedAudioBar();
 
-        document.getElementById('btn-save-audio-local').addEventListener('click', async () => {
-            if (!currentAudioBlob) {
-                showToast("一時保存できる音声データがありません", "error");
-                return;
-            }
-            try {
-                const saveName = currentAudioName || `${getResolvedMeetingTitle().fileNameBase}.webm`;
-                await saveAudioToIndexedDB(currentAudioBlob, saveName);
-                await refreshSavedAudioBar();
-                showToast("音声をブラウザ内に一時保存しました（再読み込み後も復元できます）", "success");
-            } catch (err) {
-                console.error(err);
-                showToast("音声の一時保存に失敗しました", "error");
-            }
-        });
-
         document.getElementById('btn-restore-saved-audio').addEventListener('click', async () => {
             try {
                 const saved = await getAudioFromIndexedDB();
@@ -1521,8 +1571,8 @@
                     showToast("一時保存された音声が見つかりませんでした", "error");
                     return;
                 }
-                setAudioReady(saved.blob, saved.fileName);
-                showToast(`一時保存されていた「${saved.fileName}」を呼び出しました`, "success");
+                setAudioReady(saved.blob, saved.fileName, true);
+                showToast(`自動保存されていた「${saved.fileName}」を復元しました`, "success");
             } catch (err) {
                 console.error(err);
                 showToast("音声の呼び出しに失敗しました", "error");
@@ -1932,12 +1982,6 @@
                 };
 
                 row.querySelector('.btn-apply-speaker').addEventListener('click', applyReplacement);
-                inputEl.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        applyReplacement();
-                    }
-                });
 
                 listContainer.appendChild(row);
             });
