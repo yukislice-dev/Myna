@@ -174,52 +174,16 @@
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.35);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(148, 163, 184, 0.55);
-        }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-amber-400 selection:text-slate-900">
-
-    <!-- ヘッダー -->
-    <header class="myna-header-bg text-white shadow-xl sticky top-0 z-30 border-b border-white/10">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-            <div class="flex items-center space-x-4">
-                <!-- 九官鳥（Myna）カスタムSVGロゴ -->
-                <div class="w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-950 rounded-2xl flex items-center justify-center border border-amber-400/40 shadow-lg shadow-amber-500/15 shrink-0 relative">
-                    <svg class="w-10 h-10" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- 体・頭 -->
-                        <path d="M18 46C18 32 24 18 36 18C43 18 47 23 47 30C47 39 39 48 26 48H18V46Z" fill="#0F172A" stroke="#F8FAFC" stroke-width="2.2"/>
-                        <!-- 翼のハイライト -->
-                        <path d="M24 34C28 31 35 32 37 38C33 42 26 42 24 34Z" fill="#38BDF8" fill-opacity="0.45"/>
-                        <!-- くちばし（鮮やかなオレンジ・黄色） -->
-                        <path d="M46 24L56 27L46 31V24Z" fill="#F59E0B"/>
-                        <!-- 目の周りの黄色い模様（九官鳥の特徴） -->
-                        <circle cx="40" cy="24" r="3.2" fill="#FBBF24"/>
-                        <circle cx="40.5" cy="24" r="1.6" fill="#0F172A"/>
-                        <!-- 音波アイコン -->
-                        <path d="M12 24C10 26 10 30 12 32" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
-                        <path d="M8 21C5 25 5 31 8 35" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-amber-300 bg-clip-text text-transparent">Myna</h1>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-0.5">会議・研修の忠実な文字起こしアシスタント</p>
-                </div>
-            </div>
-
-            <!-- 右側アクションボタン群（テーマ切替 ＋ APIキー設定） -->
+            <!-- 右側アクションボタン群（履歴 ＋ テーマ切替 ＋ APIキー設定） -->
             <div class="flex items-center space-x-2 shrink-0">
+                <!-- 過去の履歴ボタン -->
+                <button id="btn-open-history-modal" type="button" title="過去の文字起こし履歴"
+                    class="flex items-center space-x-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-medium text-slate-200 transition cursor-pointer">
+                    <i data-lucide="history" class="w-4 h-4 text-amber-300"></i>
+                    <span class="hidden sm:inline">履歴</span>
+                    <span id="history-count-badge" class="hidden px-1.5 py-0.2 bg-amber-400 text-slate-950 rounded-full text-[10px] font-bold">0</span>
+                </button>
+
                 <!-- ダーク / ライト モード切替ボタン -->
                 <button id="btn-toggle-theme" type="button" title="ダーク / ライトモード切替"
                     class="flex items-center space-x-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-medium text-slate-200 transition cursor-pointer">
@@ -237,6 +201,42 @@
             </div>
         </div>
     </header>
+
+    <!-- 過去の文字起こし履歴 モーダル -->
+    <div id="history-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full p-6 space-y-4 my-auto text-slate-900">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-myna-amber flex items-center justify-center">
+                        <i data-lucide="history" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900">過去の文字起こし履歴</h3>
+                        <p class="text-[11px] text-slate-500">このブラウザに自動保存された過去の記録（最新20件）を呼び出せます</p>
+                    </div>
+                </div>
+                <button id="btn-close-history-modal" type="button" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- 履歴リスト表示エリア -->
+            <div id="history-list-container" class="max-h-96 overflow-y-auto space-y-2.5 pr-1">
+                <!-- JSで動的に履歴カードを生成 -->
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-slate-200">
+                <button id="btn-clear-all-history" type="button"
+                    class="text-xs text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition cursor-pointer">
+                    履歴をすべて削除
+                </button>
+                <button id="btn-cancel-history-modal" type="button"
+                    class="px-5 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- APIキー設定＆取得ガイド モーダル -->
     <div id="api-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -552,6 +552,7 @@
         let cachedMinutesText = "";
         let cachedMinutesSource = "";
         let isGeneratingMinutes = false;
+        let currentHistoryId = null; // 現在表示中の履歴ID
 
         // ==========================================
         // 0. テーマ切替（九官鳥ダーク / ピュアホワイト・ライト）
@@ -654,6 +655,208 @@
             apiKeyInput.value = "";
             updateApiStatusBadge();
             showToast("保存されていたAPIキーを削除しました。", "info");
+        });
+
+        // ==========================================
+        // 1.5. 過去の文字起こし履歴管理（localStorage自動保存＆復元）
+        // ==========================================
+        const HISTORY_STORAGE_KEY = 'myna_transcript_history_v1';
+        const MAX_HISTORY_ITEMS = 20;
+        const historyModal = document.getElementById('history-modal');
+        const historyListContainer = document.getElementById('history-list-container');
+        const historyCountBadge = document.getElementById('history-count-badge');
+
+        function loadHistoryList() {
+            try {
+                const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                console.warn('History load failed:', e);
+                return [];
+            }
+        }
+
+        function saveHistoryList(list) {
+            try {
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list));
+                updateHistoryBadge();
+            } catch (e) {
+                console.warn('History save failed:', e);
+                showToast("ブラウザの保存容量がいっぱいのため履歴を保存できませんでした", "error");
+            }
+        }
+
+        function updateHistoryBadge() {
+            const list = loadHistoryList();
+            if (list.length > 0) {
+                historyCountBadge.textContent = list.length;
+                historyCountBadge.classList.remove('hidden');
+            } else {
+                historyCountBadge.classList.add('hidden');
+            }
+        }
+
+        // 文字起こし完了時や話者置換時に履歴へ保存・更新
+        function upsertCurrentTranscriptToHistory() {
+            if (!finalTranscriptText) return;
+            const list = loadHistoryList();
+            const info = getResolvedMeetingTitle();
+            const rawDate = document.getElementById('meeting-date').value || `${yyyy}-${mm}-${dd}`;
+            const nowStr = new Date().toLocaleString('ja-JP', {
+                month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            if (currentHistoryId) {
+                const idx = list.findIndex(item => item.id === currentHistoryId);
+                if (idx !== -1) {
+                    list[idx].title = info.title;
+                    list[idx].date = rawDate;
+                    list[idx].dateStr = info.dateStr;
+                    list[idx].transcript = finalTranscriptText;
+                    list[idx].updatedAt = nowStr;
+                    saveHistoryList(list);
+                    return;
+                }
+            }
+
+            currentHistoryId = 'hist_' + Date.now();
+            list.unshift({
+                id: currentHistoryId,
+                title: info.title,
+                date: rawDate,
+                dateStr: info.dateStr,
+                transcript: finalTranscriptText,
+                updatedAt: nowStr
+            });
+
+            if (list.length > MAX_HISTORY_ITEMS) {
+                list.length = MAX_HISTORY_ITEMS;
+            }
+            saveHistoryList(list);
+        }
+
+        function renderHistoryModalList() {
+            const list = loadHistoryList();
+            historyListContainer.innerHTML = '';
+
+            if (list.length === 0) {
+                historyListContainer.innerHTML = `
+                    <div class="text-center py-10 text-slate-400 text-xs">
+                        保存されている文字起こし履歴はまだありません。<br>文字起こしを実行すると自動的にここへ保存されます。
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach((item) => {
+                const previewSnippet = item.transcript.replace(/\n+/g, ' ').slice(0, 75) + (item.transcript.length > 75 ? '...' : '');
+                const card = document.createElement('div');
+                card.className = "flex items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 hover:border-myna-amber bg-slate-50 hover:bg-amber-50/40 transition";
+                card.innerHTML = `
+                    <div class="min-w-0 flex-1 cursor-pointer btn-load-history-item" data-id="${item.id}">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-slate-900 truncate">${escapeHtml(item.title)}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-700 shrink-0">${escapeHtml(item.dateStr)}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 truncate mt-1">${escapeHtml(previewSnippet)}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">最終保存: ${escapeHtml(item.updatedAt || '')}</p>
+                    </div>
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <button type="button" data-id="${item.id}"
+                            class="btn-load-history-item px-3 py-1.5 bg-myna-amber hover:bg-myna-amberHover text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer">
+                            開く
+                        </button>
+                        <button type="button" data-id="${item.id}" title="この履歴を削除"
+                            class="btn-delete-history-item p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                historyListContainer.appendChild(card);
+            });
+
+            lucide.createIcons();
+
+            // 「開く」イベント
+            historyListContainer.querySelectorAll('.btn-load-history-item').forEach((el) => {
+                el.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    restoreHistoryItem(id);
+                });
+            });
+
+            // 「個別削除」イベント
+            historyListContainer.querySelectorAll('.btn-delete-history-item').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const updated = loadHistoryList().filter(item => item.id !== id);
+                    if (currentHistoryId === id) currentHistoryId = null;
+                    saveHistoryList(updated);
+                    renderHistoryModalList();
+                    showToast("選択した履歴を削除しました", "info");
+                });
+            });
+        }
+
+        function restoreHistoryItem(id) {
+            const list = loadHistoryList();
+            const target = list.find(item => item.id === id);
+            if (!target) return;
+
+            currentHistoryId = target.id;
+            document.getElementById('meeting-title').value = target.title;
+            if (target.date) document.getElementById('meeting-date').value = target.date;
+
+            finalTranscriptText = target.transcript;
+            cachedMinutesText = "";
+            cachedMinutesSource = "";
+
+            const transcriptOutput = document.getElementById('transcript-output');
+            transcriptOutput.textContent = finalTranscriptText;
+
+            buildSpeakerReplacer(finalTranscriptText);
+            updateProgressUI(
+                'done',
+                100,
+                `履歴から復元：「${target.title}」`,
+                '話者名の一括置換や、Word / Markdown / AI要約議事録の作成がそのまま行えます。'
+            );
+            setOutputActionsEnabled(true);
+            closeHistoryModal();
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showToast(`「${target.title}」を履歴から復元しました`, "success");
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function closeHistoryModal() {
+            historyModal.classList.add('hidden');
+        }
+
+        updateHistoryBadge();
+
+        document.getElementById('btn-open-history-modal').addEventListener('click', () => {
+            renderHistoryModalList();
+            historyModal.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-history-modal').addEventListener('click', closeHistoryModal);
+        document.getElementById('btn-cancel-history-modal').addEventListener('click', closeHistoryModal);
+        historyModal.addEventListener('click', (e) => {
+            if (e.target === historyModal) closeHistoryModal();
+        });
+        document.getElementById('btn-clear-all-history').addEventListener('click', () => {
+            localStorage.removeItem(HISTORY_STORAGE_KEY);
+            currentHistoryId = null;
+            updateHistoryBadge();
+            renderHistoryModalList();
+            showToast("すべての履歴を削除しました", "info");
         });
 
         // 初期日付を本日にセット
@@ -1280,6 +1483,10 @@
                 finalTranscriptText = transcripts.join('\n\n');
                 transcriptOutput.textContent = finalTranscriptText;
 
+                // 新規履歴として自動保存
+                currentHistoryId = null;
+                upsertCurrentTranscriptToHistory();
+
                 // 話者一括置換UIの生成
                 buildSpeakerReplacer(finalTranscriptText);
 
@@ -1290,7 +1497,7 @@
                     '必要に応じて話者名を先生のお名前に一括置換し、下のボタンから議事録ファイルを作成できます。'
                 );
                 setOutputActionsEnabled(true);
-                showToast("文字起こしが完了しました！", "success");
+                showToast("文字起こしが完了しました！（履歴にも自動保存されました）", "success");
 
             } catch (err) {
                 console.error("Transcription Error:", err);
@@ -1314,7 +1521,7 @@
         // ==========================================
         // 6. 話者名の一括置換機能
         // ==========================================
-        function buildSpeakerReplacer(text) {
+        function buildSpeakerReplacer(text, preservedInputs = {}) {
             const panel = document.getElementById('speaker-replace-panel');
             const list = document.getElementById('speaker-replace-list');
             list.innerHTML = '';
@@ -1334,12 +1541,13 @@
 
             uniqueSpeakers.forEach((speakerLabel) => {
                 const cleanName = speakerLabel.replace(/[【】]/g, '');
+                const savedDraft = preservedInputs[speakerLabel] || '';
                 const itemDiv = document.createElement('div');
                 itemDiv.className = "theme-input flex items-center space-x-1.5 p-2 rounded-xl";
                 itemDiv.innerHTML = `
-                    <span class="text-xs font-bold text-myna-amber shrink-0 px-1.5">${cleanName}</span>
+                    <span class="text-xs font-bold text-myna-amber shrink-0 px-1.5">${escapeHtml(cleanName)}</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5 theme-text-muted shrink-0"></i>
-                    <input type="text" placeholder="例：校長先生" data-original="${speakerLabel}"
+                    <input type="text" placeholder="例：〇〇先生" data-original="${escapeHtml(speakerLabel)}" value="${escapeHtml(savedDraft)}"
                         class="speaker-input flex-1 min-w-0 text-xs px-2.5 py-1.5 bg-transparent border border-slate-500/30 rounded-lg focus:outline-none focus:border-myna-amber">
                     <button type="button" class="btn-apply-speaker px-2.5 py-1.5 bg-myna-amber hover:bg-myna-amberHover text-slate-950 font-bold text-xs rounded-lg shrink-0 transition cursor-pointer">
                         置換
@@ -1364,16 +1572,26 @@
                         return;
                     }
 
+                    // 他の話者ボックスに入力途中だった内容をすべて退避・保持する
+                    const preservedInputs = {};
+                    list.querySelectorAll('.speaker-input').forEach((otherInput) => {
+                        const key = otherInput.getAttribute('data-original');
+                        if (key !== originalLabel && otherInput.value.trim() !== '') {
+                            preservedInputs[key] = otherInput.value;
+                        }
+                    });
+
                     const newLabel = `【${newName.replace(/[【】]/g, '')}】`;
                     finalTranscriptText = finalTranscriptText.split(originalLabel).join(newLabel);
                     document.getElementById('transcript-output').textContent = finalTranscriptText;
 
-                    // 話者名が変わったので議事録キャッシュをリセット
+                    // 話者名が変わったので議事録キャッシュをリセットし、履歴データも更新
                     cachedMinutesText = "";
                     cachedMinutesSource = "";
+                    upsertCurrentTranscriptToHistory();
 
                     showToast(`「${originalLabel}」を「${newLabel}」に一括置換しました`, "success");
-                    buildSpeakerReplacer(finalTranscriptText);
+                    buildSpeakerReplacer(finalTranscriptText, preservedInputs);
                 });
             });
         }
