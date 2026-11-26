@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myna - 会議・研修 高精度文字起こし</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans JP & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- docx.js for generating real Word (.docx) files in browser -->
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        myna: {
+                            black: '#0F172A',
+                            dark: '#1E293B',
+                            amber: '#F59E0B',
+                            amberHover: '#D97706',
+                            light: '#F8FAFC',
+                            surface: '#FFFFFF',
+                            accent: '#FEF3C7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ==========================================
+           テーマ変数（デフォルト：九官鳥ダークモード）
+           ========================================== */
+        :root {
+            --bg-gradient: radial-gradient(circle at 15% 10%, #1E1B4B 0%, #0F172A 45%, #090D16 100%);
+            --card-bg: rgba(30, 41, 59, 0.72);
+            --card-border: rgba(148, 163, 184, 0.16);
+            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --input-bg: rgba(15, 23, 42, 0.75);
+            --input-border: rgba(148, 163, 184, 0.25);
+            --subpanel-bg: rgba(15, 23, 42, 0.55);
+            --studio-bg: radial-gradient(circle at center, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+            --divider-color: rgba(148, 163, 184, 0.15);
+            --visualizer-bg: rgba(9, 13, 22, 0.7);
+            --visualizer-idle: #334155;
+        }
+
+        /* ピュアホワイト・ライトモード（黄ばみゼロの純白＆クールスレート） */
+        body.theme-light {
+            --bg-gradient: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(203, 213, 225, 0.85);
+            --card-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+            --input-bg: #F8FAFC;
+            --input-border: #CBD5E1;
+            --subpanel-bg: #F8FAFC;
+            --studio-bg: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+            --divider-color: #E2E8F0;
+            --visualizer-bg: #FFFFFF;
+            --visualizer-idle: #CBD5E1;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ヘッダーの九官鳥の羽の艶めきグラデーション */
+        .myna-header-bg {
+            background: linear-gradient(135deg, #090D16 0%, #0F172A 55%, #1E1B4B 100%);
+        }
+
+        /* テーマ適応ユーティリティ */
+        .myna-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(16px);
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .theme-text-primary { color: var(--text-primary); }
+        .theme-text-secondary { color: var(--text-secondary); }
+        .theme-text-muted { color: var(--text-muted); }
+        .theme-divider { border-color: var(--divider-color); }
+        .theme-subpanel {
+            background: var(--subpanel-bg);
+            border: 1px solid var(--card-border);
+        }
+        .theme-studio-panel {
+            background: var(--studio-bg);
+            border: 1px solid var(--card-border);
+        }
+        .theme-input {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+        }
+        .theme-input::placeholder {
+            color: var(--text-muted);
+        }
+        .theme-visualizer {
+            background: var(--visualizer-bg);
+            border: 1px solid var(--card-border);
+        }
+
+        /* 録音ボタンの華やかな光沢とアニメーション */
+        .btn-record-ready {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 55%, #D97706 100%);
+            color: #0F172A;
+            box-shadow: 0 10px 28px -5px rgba(245, 158, 11, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        .btn-record-ready:hover {
+            background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 55%, #B45309 100%);
+            box-shadow: 0 14px 34px -5px rgba(245, 158, 11, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.75); }
+            70% { transform: scale(1.01); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .recording-pulse {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF;
+            animation: pulse-ring 2s infinite;
+        }
+        /* ゴールドアクセントのプライマリボタン */
+        .btn-gold-gradient {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%);
+            box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.45);
+        }
+        .btn-gold-gradient:hover:not(:disabled) {
+            background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 50%, #B45309 100%);
+            box-shadow: 0 12px 24px -4px rgba(245, 158, 11, 0.65);
+            transform: translateY(-1px);
+        }
+        /* Wordボタンのロイヤルブルーグラデーション */
+        .btn-word-gradient {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 60%, #1D4ED8 100%);
+            box-shadow: 0 6px 16px -4px rgba(37, 99, 235, 0.45);
+        }
+        .btn-word-gradient:hover:not(:disabled) {
+            background: linear-gradient(135deg, #60A5FA 0%, #2563EB 60%, #1E40AF 100%);
+            box-shadow: 0 10px 20px -4px rgba(37, 99, 235, 0.6);
+            transform: translateY(-1px);
+        }
+        /* Markdownボタンのインディゴ・スレートグラデーション */
+        .btn-md-gradient {
+            background: linear-gradient(135deg, #475569 0%, #334155 60%, #1E293B 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.45);
+        }
+        .btn-md-gradient:hover:not(:disabled) {
+            background: linear-gradient(135deg, #64748B 0%, #334155 60%, #0F172A 100%);
+            box-shadow: 0 10px 20px -4px rgba(15, 23, 42, 0.6);
+            transform: translateY(-1px);
+        }
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.35);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.55);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-amber-400 selection:text-slate-900">
+
+    <!-- ヘッダー -->
+    <header class="myna-header-bg text-white shadow-xl sticky top-0 z-30 border-b border-white/10">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-4">
+                <!-- 九官鳥（Myna）カスタムSVGロゴ -->
+                <div class="w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-950 rounded-2xl flex items-center justify-center border border-amber-400/40 shadow-lg shadow-amber-500/15 shrink-0 relative">
+                    <svg class="w-10 h-10" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 体・頭 -->
+                        <path d="M18 46C18 32 24 18 36 18C43 18 47 23 47 30C47 39 39 48 26 48H18V46Z" fill="#0F172A" stroke="#F8FAFC" stroke-width="2.2"/>
+                        <!-- 翼のハイライト -->
+                        <path d="M24 34C28 31 35 32 37 38C33 42 26 42 24 34Z" fill="#38BDF8" fill-opacity="0.45"/>
+                        <!-- くちばし（鮮やかなオレンジ・黄色） -->
+                        <path d="M46 24L56 27L46 31V24Z" fill="#F59E0B"/>
+                        <!-- 目の周りの黄色い模様（九官鳥の特徴） -->
+                        <circle cx="40" cy="24" r="3.2" fill="#FBBF24"/>
+                        <circle cx="40.5" cy="24" r="1.6" fill="#0F172A"/>
+                        <!-- 音波アイコン -->
+                        <path d="M12 24C10 26 10 30 12 32" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M8 21C5 25 5 31 8 35" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-amber-300 bg-clip-text text-transparent">Myna</h1>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">会議・研修の忠実な文字起こしアシスタント</p>
+                </div>
+            </div>
+
+            <!-- 右側アクションボタン群（テーマ切替 ＋ APIキー設定） -->
+            <div class="flex items-center space-x-2 shrink-0">
+                <!-- ダーク / ライト モード切替ボタン -->
+                <button id="btn-toggle-theme" type="button" title="ダーク / ライトモード切替"
+                    class="flex items-center space-x-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-medium text-slate-200 transition cursor-pointer">
+                    <i id="theme-icon" data-lucide="sun" class="w-4 h-4 text-amber-300"></i>
+                    <span id="theme-label" class="hidden sm:inline">ライト表示</span>
+                </button>
+
+                <!-- APIキー設定ボタン -->
+                <button id="btn-open-api-modal" type="button"
+                    class="flex items-center space-x-2 px-3.5 sm:px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs sm:text-sm font-medium transition cursor-pointer shadow-sm">
+                    <span id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    <i data-lucide="key" class="w-4 h-4 text-myna-amber"></i>
+                    <span id="api-status-label">APIキー設定</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- APIキー設定＆取得ガイド モーダル -->
+    <div id="api-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-5 my-auto text-slate-900">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-myna-amber flex items-center justify-center">
+                        <i data-lucide="key-round" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-slate-900">Gemini APIキーの設定</h3>
+                </div>
+                <button id="btn-close-api-modal" type="button" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- APIキー入力フォーム -->
+            <div class="space-y-2">
+                <label for="api-key-input" class="block text-xs font-bold text-slate-700">
+                    あなたの Gemini APIキー
+                </label>
+                <div class="flex space-x-2">
+                    <input type="password" id="api-key-input" placeholder="AIzaSy..."
+                        class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-myna-amber focus:bg-white">
+                    <button id="btn-toggle-key-visibility" type="button" title="表示/非表示"
+                        class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-500">
+                    ※入力したキーはお使いの端末のブラウザ内にのみ保存され、外部サーバーへ送信されることはありません。
+                </p>
+            </div>
+
+            <!-- 初めての先生向け：取得手順ガイド -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center space-x-1.5 text-slate-900 font-bold text-xs">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-myna-amber"></i>
+                    <span>初めての方へ：APIキーの無料取得方法（約1分）</span>
+                </div>
+                <ol class="text-xs text-slate-700 space-y-2 list-decimal list-inside leading-relaxed">
+                    <li>
+                        下のボタンから <strong>Google AI Studio</strong> を開き、個人のGoogleアカウントでログインします。
+                        <div class="mt-1.5 ml-4">
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-blue-600 border border-blue-200 rounded-lg font-bold text-xs shadow-2xs transition">
+                                <span>Google AI Studio を開く</span>
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </li>
+                    <li>画面の <strong>「APIキーを作成（Create API key）」</strong> ボタンをクリックします。</li>
+                    <li>表示された英数字の文字列（<code class="bg-white px-1 py-0.5 rounded border border-slate-200">AIza...</code>）をコピーし、上の入力欄に貼り付けて「保存する」を押してください。</li>
+                </ol>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+                <button id="btn-delete-api-key" type="button"
+                    class="text-xs text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition">
+                    保存済みのキーを削除
+                </button>
+                <div class="flex space-x-2">
+                    <button id="btn-cancel-api-modal" type="button"
+                        class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                        閉じる
+                    </button>
+                    <button id="btn-save-api-key" type="button"
+                        class="px-5 py-2 text-xs font-bold bg-myna-amber hover:bg-myna-amberHover text-slate-900 rounded-xl shadow-sm transition cursor-pointer">
+                        保存する
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-7 space-y-7">
+
+        <!-- 通知・メッセージエリア（alertの代わり） -->
+        <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+        <!-- 1. 会議情報入力カード -->
+        <section class="myna-card rounded-3xl p-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 font-bold text-xs flex items-center justify-center shadow-sm">1</span>
+                <h2 class="font-bold text-base theme-text-primary">会議・研修の基本情報（任意）</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="sm:col-span-2">
+                    <label for="meeting-title" class="block text-xs font-bold theme-text-secondary mb-1.5">
+                        会議・研修名 <span class="theme-text-muted font-normal">（※未入力時は「日付_会議記録」になります）</span>
+                    </label>
+                    <input type="text" id="meeting-title" placeholder="例：第4回 職員会議、校内ICT研修"
+                        class="theme-input w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-myna-amber focus:border-myna-amber transition">
+                </div>
+                <div>
+                    <label for="meeting-date" class="block text-xs font-bold theme-text-secondary mb-1.5">実施日</label>
+                    <input type="date" id="meeting-date"
+                        class="theme-input w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-myna-amber focus:border-myna-amber transition">
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 音声入力カード（録音メイン ＋ 下部にコンパクトなファイル選択） -->
+        <section class="myna-card rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <span class="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 font-bold text-xs flex items-center justify-center shadow-sm">2</span>
+                    <h2 class="font-bold text-base theme-text-primary">音声の録音</h2>
+                </div>
+                <span id="audio-status-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-slate-500/15 theme-text-secondary border border-slate-500/20">
+                    待機中
+                </span>
+            </div>
+
+            <!-- メイン：ワンタッチ録音エリア（スタジオ風パネル） -->
+            <div class="theme-studio-panel rounded-2xl p-6 sm:p-9 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <!-- 九官鳥の羽の艶めきを表現した控えめなオーロラ光彩 -->
+                <div class="absolute -top-24 -right-24 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-56 h-56 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div id="recording-timer" class="text-4xl sm:text-5xl font-mono font-bold theme-text-primary mb-2 tracking-wider relative z-10">
+                    00:00:00
+                </div>
+                <p id="recording-hint" class="text-xs sm:text-sm theme-text-secondary mb-5 relative z-10">ボタンを押すとすぐに録音が始まります</p>
+
+                <!-- 簡易音量ビジュアライザー -->
+                <canvas id="visualizer" class="theme-visualizer w-full max-w-md h-14 mb-6 rounded-xl relative z-10"></canvas>
+
+                <button id="btn-record-toggle" type="button"
+                    class="btn-record-ready flex items-center space-x-3 px-9 py-4 rounded-full font-bold text-base transition-all active:scale-95 cursor-pointer relative z-10">
+                    <span id="record-dot" class="w-3.5 h-3.5 rounded-full bg-red-600 shadow-sm"></span>
+                    <span id="btn-record-text">録音を開始</span>
+                </button>
+            </div>
+
+            <!-- サブ：録音ボタンの下に配置したコンパクトなファイル読み込みボタン -->
+            <div id="drop-zone" class="theme-subpanel mt-4 flex flex-col sm:flex-row items-center justify-center gap-2.5 py-3 px-4 rounded-2xl border border-dashed hover:border-myna-amber transition">
+                <input type="file" id="audio-file-input" accept="audio/*,video/mp4,video/webm" class="hidden">
+                <span class="text-xs theme-text-secondary font-medium">録音済みの音声データがある場合：</span>
+                <button type="button" id="btn-select-file"
+                    class="theme-input inline-flex items-center space-x-1.5 px-4 py-1.5 hover:border-myna-amber rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+                    <i data-lucide="folder-open" class="w-3.5 h-3.5 text-myna-amber"></i>
+                    <span>クリックして音声ファイルを選択</span>
+                </button>
+            </div>
+
+            <!-- 音声準備完了後のプレビュー＆文字起こし実行バー -->
+            <div id="audio-ready-panel" class="hidden mt-5 pt-5 border-t theme-divider">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl">
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center shrink-0 shadow-sm">
+                            <i data-lucide="file-audio" class="w-5 h-5"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p id="loaded-audio-name" class="text-sm font-bold theme-text-primary truncate">録音データ.webm</p>
+                            <p id="loaded-audio-meta" class="text-xs theme-text-secondary">長さ: --:-- / 15分ごとに自動分割して処理します</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        <button id="btn-clear-audio" type="button"
+                            class="px-3.5 py-2.5 text-xs font-bold theme-text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-xl transition cursor-pointer">
+                            破棄
+                        </button>
+                        <button id="btn-start-transcribe" type="button"
+                            class="btn-gold-gradient flex-1 sm:flex-initial flex items-center justify-center space-x-2 px-6 py-3 text-slate-950 font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span>文字起こしを実行する</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- 音声確認用プレイヤー -->
+                <audio id="audio-preview-player" controls class="w-full mt-3 h-10 rounded-xl"></audio>
+            </div>
+        </section>
+
+        <!-- 3. 文字起こし進行状況 ＆ 結果表示カード（常時表示） -->
+        <section id="result-section" class="myna-card rounded-3xl p-6 space-y-5">
+            <!-- ヘッダーとダウンロードボタン -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b theme-divider pb-4">
+                <div class="flex items-center space-x-3">
+                    <span class="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 font-bold text-xs flex items-center justify-center shadow-sm">3</span>
+                    <h2 class="font-bold text-base theme-text-primary">文字起こしの進行状況と結果</h2>
+                </div>
+
+                <!-- ダウンロードボタン（Word / Markdown 独立配置・完了前は半透明で無効化） -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button id="btn-download-word" type="button" disabled
+                        class="btn-word-gradient flex items-center space-x-2 px-4 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>Word (.docx) で保存</span>
+                    </button>
+                    <button id="btn-download-md" type="button" disabled
+                        class="btn-md-gradient flex items-center space-x-2 px-4 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
+                        <i data-lucide="file-code" class="w-4 h-4 text-myna-amber"></i>
+                        <span>Markdown (.md) で保存</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 常時表示の進行状況ステータスバー -->
+            <div id="progress-box" class="theme-subpanel rounded-2xl p-4 transition-colors">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span id="progress-status-icon" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                        <h3 id="progress-title" class="font-bold text-sm theme-text-primary">進行状況：待機中（音声を録音または選択してください）</h3>
+                    </div>
+                    <span id="progress-percent" class="theme-input text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg">0%</span>
+                </div>
+                <div class="w-full bg-slate-500/20 rounded-full h-3 overflow-hidden p-0.5">
+                    <div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-orange-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p id="progress-detail" class="text-xs theme-text-secondary mt-2">
+                    15分ごとに自動分割し、要約なし・フィラー除去・話者分類で丁寧に文字起こしを行います。
+                </p>
+            </div>
+
+            <!-- 話者名の一括置換パネル（文字起こし完了後に表示） -->
+            <div id="speaker-replace-panel" class="hidden theme-subpanel rounded-2xl p-4 border border-amber-500/30">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-1.5">
+                        <i data-lucide="users" class="w-4 h-4 text-myna-amber"></i>
+                        <h3 class="text-xs font-bold theme-text-primary">話者名の一括置換</h3>
+                    </div>
+                    <span class="text-[11px] theme-text-secondary">検出された話者名を実際の先生のお名前などに一括変換できます</span>
+                </div>
+                <div id="speaker-replace-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-2">
+                    <!-- JSで動的に話者置換フォームを生成 -->
+                </div>
+            </div>
+
+            <!-- 文字起こしテキスト表示枠（常時表示） -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold theme-text-secondary flex items-center space-x-1.5">
+                        <i data-lucide="align-left" class="w-3.5 h-3.5 text-myna-amber"></i>
+                        <span>文字起こしテキスト</span>
+                    </span>
+                    <button id="btn-copy-text" type="button" disabled
+                        class="theme-input text-xs flex items-center space-x-1 disabled:opacity-40 disabled:cursor-not-allowed hover:border-myna-amber px-3 py-1.5 rounded-xl font-medium transition cursor-pointer">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <span>全文コピー</span>
+                    </button>
+                </div>
+                <div id="transcript-output"
+                    class="theme-input w-full h-96 overflow-y-auto p-5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap font-sans select-all"><span class="theme-text-muted">ここに文字起こしされた文章が表示されます...</span></div>
+            </div>
+        </section>
+
+        <!-- 4. AI要約・議事録ファイル作成カード（プレビュー枠なし・直接作成＆保存） -->
+        <section id="minutes-section" class="myna-card rounded-3xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b theme-divider pb-3.5">
+                <div class="flex items-center space-x-3">
+                    <span class="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center shadow-sm">4</span>
+                    <h2 class="font-bold text-base theme-text-primary">AI要約・議事録ファイルの作成</h2>
+                </div>
+                <span id="minutes-status-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-slate-500/15 theme-text-secondary border border-slate-500/20">
+                    文字起こし完了後に利用可能
+                </span>
+            </div>
+
+            <p class="text-xs sm:text-sm theme-text-secondary leading-relaxed">
+                上の文字起こし結果をもとに、会議や研修の内容を分かりやすく整理した<strong class="theme-text-primary">「要約・記録ファイル」</strong>を直接作成して保存します。
+                <span class="block text-[11px] theme-text-muted mt-1">※決定事項がない研修・講演などの録音でも、内容に合わせて最適な見出し構成で自動整理します。先に「話者名の一括置換」をしておくと、お名前も反映されます。</span>
+            </p>
+
+            <!-- 直接作成＆ダウンロードボタン（Word / Markdown 独立配置） -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                <button id="btn-create-minutes-word" type="button" disabled
+                    class="btn-word-gradient flex items-center justify-center space-x-2 px-5 py-3.5 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span id="label-minutes-word">要約・議事録を Word (.docx) で作成・保存</span>
+                </button>
+                <button id="btn-create-minutes-md" type="button" disabled
+                    class="btn-md-gradient flex items-center justify-center space-x-2 px-5 py-3.5 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
+                    <i data-lucide="file-code" class="w-4 h-4 text-myna-amber"></i>
+                    <span id="label-minutes-md">要約・議事録を Markdown (.md) で作成・保存</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="border-t theme-divider py-5 mt-8">
+        <div class="max-w-4xl mx-auto px-4 text-center text-xs theme-text-muted font-medium">
+            Myna - 先生方の校務効率化のための音声文字起こしツール
+        </div>
+    </footer>
+
+    <script>
+        // アイコン初期化
+        lucide.createIcons();
+
+        // ==========================================
+        // 状態管理変数（初期化前に参照されないよう先頭に配置）
+        // ==========================================
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingStartTime = null;
+        let timerInterval = null;
+        let audioContext = null;
+        let analyser = null;
+        let animationFrameId = null;
+        let wakeLockSentinel = null; // 録音中の画面スリープ防止用
+
+        let currentAudioBlob = null;
+        let currentAudioName = "";
+        let finalTranscriptText = "";
+        let isTranscribing = false;
+        let cachedMinutesText = "";
+        let cachedMinutesSource = "";
+        let isGeneratingMinutes = false;
+
+        // ==========================================
+        // 0. テーマ切替（九官鳥ダーク / ピュアホワイト・ライト）
+        // ==========================================
+        const THEME_STORAGE_KEY = 'myna_ui_theme';
+        const btnToggleTheme = document.getElementById('btn-toggle-theme');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeLabel = document.getElementById('theme-label');
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('theme-light');
+                themeIcon.setAttribute('data-lucide', 'moon');
+                themeLabel.textContent = 'ダーク表示';
+            } else {
+                document.body.classList.remove('theme-light');
+                themeIcon.setAttribute('data-lucide', 'sun');
+                themeLabel.textContent = 'ライト表示';
+            }
+            lucide.createIcons();
+            if (!isRecording) drawIdleVisualizer();
+        }
+
+        // 初期テーマの適用（デフォルトはダークモード）
+        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+        applyTheme(savedTheme);
+
+        btnToggleTheme.addEventListener('click', () => {
+            const nextTheme = document.body.classList.contains('theme-light') ? 'dark' : 'light';
+            localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+            applyTheme(nextTheme);
+        });
+
+        // ==========================================
+        // 1. APIキー管理（localStorage保存＆モーダル制御）
+        // ==========================================
+        const API_KEY_STORAGE_KEY = 'myna_gemini_api_key';
+        const apiModal = document.getElementById('api-modal');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const apiStatusDot = document.getElementById('api-status-dot');
+        const apiStatusLabel = document.getElementById('api-status-label');
+
+        function getSavedApiKey() {
+            return (localStorage.getItem(API_KEY_STORAGE_KEY) || "").trim();
+        }
+
+        function updateApiStatusBadge() {
+            const savedKey = getSavedApiKey();
+            if (savedKey) {
+                apiStatusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+                apiStatusLabel.textContent = "APIキー設定済";
+            } else {
+                apiStatusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+                apiStatusLabel.textContent = "APIキー設定";
+            }
+        }
+
+        // 初期状態反映
+        updateApiStatusBadge();
+
+        document.getElementById('btn-open-api-modal').addEventListener('click', () => {
+            apiKeyInput.value = getSavedApiKey();
+            apiKeyInput.type = 'password';
+            apiModal.classList.remove('hidden');
+        });
+
+        function closeApiModal() {
+            apiModal.classList.add('hidden');
+        }
+
+        document.getElementById('btn-close-api-modal').addEventListener('click', closeApiModal);
+        document.getElementById('btn-cancel-api-modal').addEventListener('click', closeApiModal);
+
+        // モーダル背景クリックで閉じる
+        apiModal.addEventListener('click', (e) => {
+            if (e.target === apiModal) closeApiModal();
+        });
+
+        // パスワード表示/非表示切替
+        document.getElementById('btn-toggle-key-visibility').addEventListener('click', () => {
+            apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+        });
+
+        // 保存ボタン
+        document.getElementById('btn-save-api-key').addEventListener('click', () => {
+            const val = apiKeyInput.value.trim();
+            if (!val) {
+                showToast("APIキーを入力してください。", "error");
+                return;
+            }
+            localStorage.setItem(API_KEY_STORAGE_KEY, val);
+            updateApiStatusBadge();
+            closeApiModal();
+            showToast("Gemini APIキーをブラウザに保存しました。", "success");
+        });
+
+        // 削除ボタン
+        document.getElementById('btn-delete-api-key').addEventListener('click', () => {
+            localStorage.removeItem(API_KEY_STORAGE_KEY);
+            apiKeyInput.value = "";
+            updateApiStatusBadge();
+            showToast("保存されていたAPIキーを削除しました。", "info");
+        });
+
+        // 初期日付を本日にセット
+        const dateInput = document.getElementById('meeting-date');
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+
+        // トースト通知関数（alertの代わり）
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                info: 'bg-slate-800 text-white border-slate-700',
+                success: 'bg-emerald-700 text-white border-emerald-600',
+                error: 'bg-red-600 text-white border-red-500'
+            };
+            toast.className = `${colors[type]} border px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center space-x-2 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto max-w-sm`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // 会議タイトルの取得（未入力時は日付で自動補完）
+        function getResolvedMeetingTitle() {
+            const rawTitle = document.getElementById('meeting-title').value.trim();
+            const rawDate = document.getElementById('meeting-date').value;
+            let formattedDate = `${yyyy}年${mm}月${dd}日`;
+            if (rawDate) {
+                const parts = rawDate.split('-');
+                if (parts.length === 3) {
+                    formattedDate = `${parts[0]}年${parts[1]}月${parts[2]}日`;
+                }
+            }
+            if (rawTitle) {
+                return {
+                    title: rawTitle,
+                    dateStr: formattedDate,
+                    fileNameBase: `${rawDate || `${yyyy}-${mm}-${dd}`}_${rawTitle.replace(/[\\/:*?"<>|]/g, '_')}`
+                };
+            } else {
+                return {
+                    title: `${formattedDate} 会議記録`,
+                    dateStr: formattedDate,
+                    fileNameBase: `${formattedDate}_会議記録`
+                };
+            }
+        }
+
+        // ==========================================
+        // 2. 音声録音 & ビジュアライザー制御
+        // ==========================================
+        const btnRecordToggle = document.getElementById('btn-record-toggle');
+        const btnRecordText = document.getElementById('btn-record-text');
+        const recordDot = document.getElementById('record-dot');
+        const recordingTimer = document.getElementById('recording-timer');
+        const recordingHint = document.getElementById('recording-hint');
+        const audioStatusBadge = document.getElementById('audio-status-badge');
+        const visualizerCanvas = document.getElementById('visualizer');
+        const canvasCtx = visualizerCanvas.getContext('2d');
+
+        // キャンバスのレスポンシブサイズ調整
+        function resizeCanvas() {
+            const canvas = document.getElementById('visualizer');
+            if (!canvas) return;
+            canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+            canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+            if (!isRecording) drawIdleVisualizer();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 50);
+
+        function drawIdleVisualizer() {
+            const canvas = document.getElementById('visualizer');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const isLight = document.body.classList.contains('theme-light');
+            ctx.strokeStyle = isLight ? '#CBD5E1' : '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+        }
+
+        function startVisualizer(stream) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                if (!isRecording) return;
+                animationFrameId = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+
+                canvasCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+                const barWidth = (visualizerCanvas.width / bufferLength) * 2.2;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = (dataArray[i] / 255) * visualizerCanvas.height * 0.85;
+                    canvasCtx.fillStyle = i % 2 === 0 ? '#F59E0B' : '#FBBF24';
+                    const y = (visualizerCanvas.height - barHeight) / 2;
+                    canvasCtx.fillRect(x, y, barWidth - 2, Math.max(barHeight, 2));
+                    x += barWidth;
+                }
+            }
+            draw();
+        }
+
+        function formatSeconds(totalSec) {
+            const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+            const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+            const s = String(Math.floor(totalSec % 60)).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        // 画面スリープ防止（Wake Lock API）の制御
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLockSentinel = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    console.warn('Wake Lock request failed:', err);
+                }
+            }
+        }
+
+        async function releaseWakeLock() {
+            if (wakeLockSentinel) {
+                try {
+                    await wakeLockSentinel.release();
+                    wakeLockSentinel = null;
+                } catch (err) {
+                    console.warn('Wake Lock release failed:', err);
+                }
+            }
+        }
+
+        // 録音中に別タブへ移動して戻ってきた際にもスリープ防止を再取得
+        document.addEventListener('visibilitychange', async () => {
+            if (isRecording && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        btnRecordToggle.addEventListener('click', async () => {
+            if (!isRecording) {
+                // 録音開始
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    await requestWakeLock(); // 録音中の画面スリープを防止
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                        const blob = new Blob(audioChunks, { type: mimeType });
+                        const ext = mimeType.includes('mp4') ? 'm4a' : 'webm';
+                        const info = getResolvedMeetingTitle();
+                        setAudioReady(blob, `${info.fileNameBase}.${ext}`);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start(1000);
+                    isRecording = true;
+                    recordingStartTime = Date.now();
+
+                    // UI更新
+                    btnRecordToggle.classList.remove('btn-record-ready');
+                    btnRecordToggle.classList.add('recording-pulse');
+                    recordDot.className = "w-3.5 h-3.5 rounded-sm bg-white";
+                    btnRecordText.textContent = "録音を停止する";
+                    recordingHint.textContent = "録音中です... 話し終わったら停止ボタンを押してください";
+                    audioStatusBadge.textContent = "録音中";
+                    audioStatusBadge.className = "text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30";
+
+                    startVisualizer(stream);
+
+                    timerInterval = setInterval(() => {
+                        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+                        recordingTimer.textContent = formatSeconds(elapsed);
+                    }, 500);
+
+                    showToast("録音を開始しました", "info");
+                } catch (err) {
+                    console.error(err);
+                    showToast("マイクの使用が許可されていません。ブラウザの設定をご確認ください。", "error");
+                }
+            } else {
+                // 録音停止
+                mediaRecorder.stop();
+                isRecording = false;
+                await releaseWakeLock(); // スリープ防止を解除
+                clearInterval(timerInterval);
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                if (audioContext) audioContext.close();
+                drawIdleVisualizer();
+
+                // UIリセット
+                btnRecordToggle.classList.remove('recording-pulse');
+                btnRecordToggle.classList.add('btn-record-ready');
+                recordDot.className = "w-3.5 h-3.5 rounded-full bg-red-600 shadow-sm";
+                btnRecordText.textContent = "録音を開始";
+                recordingHint.textContent = "録音完了！下のボタンから文字起こしを実行できます";
+                audioStatusBadge.textContent = "音声準備完了";
+                audioStatusBadge.className = "text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+                showToast("録音を完了しました", "success");
+            }
+        });
+
+        // ==========================================
+        // 3. 既存音声ファイルの読み込み制御
+        // ==========================================
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('audio-file-input');
+        const btnSelectFile = document.getElementById('btn-select-file');
+
+        btnSelectFile.addEventListener('click', () => {
+            if (isRecording) {
+                showToast("録音中はファイルを読み込めません。先に録音を停止してください。", "error");
+                return;
+            }
+            fileInput.click();
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-myna-amber', 'bg-amber-500/10');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-myna-amber', 'bg-amber-500/10');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-myna-amber', 'bg-amber-500/10');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleUploadedFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleUploadedFile(e.target.files[0]);
+            }
+        });
+
+        function handleUploadedFile(file) {
+            if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
+                showToast("音声ファイル（mp3, m4a, wavなど）を選択してください。", "error");
+                return;
+            }
+            setAudioReady(file, file.name);
+            showToast(`「${file.name}」を読み込みました`, "success");
+        }
+
+        function setAudioReady(blob, fileName) {
+            currentAudioBlob = blob;
+            currentAudioName = fileName;
+
+            const url = URL.createObjectURL(blob);
+            const player = document.getElementById('audio-preview-player');
+            player.src = url;
+
+            document.getElementById('loaded-audio-name').textContent = fileName;
+            const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+            document.getElementById('loaded-audio-meta').textContent = `サイズ: ${sizeMB} MB / 15分ごとに自動分割して処理します`;
+
+            player.onloadedmetadata = () => {
+                if (isFinite(player.duration)) {
+                    const durStr = formatSeconds(Math.floor(player.duration));
+                    const chunksEst = Math.max(1, Math.ceil(player.duration / 900));
+                    document.getElementById('loaded-audio-meta').textContent =
+                        `長さ: ${durStr}（約${chunksEst}パートに自動分割して処理）`;
+                }
+            };
+
+            document.getElementById('audio-ready-panel').classList.remove('hidden');
+            audioStatusBadge.textContent = "音声準備完了";
+            audioStatusBadge.className = "text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        }
+
+        document.getElementById('btn-clear-audio').addEventListener('click', () => {
+            currentAudioBlob = null;
+            currentAudioName = "";
+            fileInput.value = "";
+            recordingTimer.textContent = "00:00:00";
+            recordingHint.textContent = "ボタンを押すとすぐに録音が始まります";
+            document.getElementById('audio-ready-panel').classList.add('hidden');
+            audioStatusBadge.textContent = "待機中";
+            audioStatusBadge.className = "text-xs font-bold px-3 py-1 rounded-full bg-slate-500/15 theme-text-secondary border border-slate-500/20";
+        });
+
+        // ==========================================
+        // 4. 音声の15分自動分割ロジック（Web Audio API -> WAV変換）
+        // ==========================================
+        function audioBufferToWavBlob(audioBuffer, startSample, endSample) {
+            const numChannels = 1; // 音声認識用にモノラル化して軽量・高速化
+            const sampleRate = audioBuffer.sampleRate;
+            const length = endSample - startSample;
+            const buffer = new ArrayBuffer(44 + length * 2);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * 2, true);
+            view.setUint16(32, numChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, length * 2, true);
+
+            // 全チャンネルをミックスして16bit PCMへ書き込み
+            const channels = [];
+            for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
+                channels.push(audioBuffer.getChannelData(c));
+            }
+
+            let offset = 44;
+            for (let i = startSample; i < endSample; i++) {
+                let sample = 0;
+                for (let c = 0; c < channels.length; c++) {
+                    sample += channels[c][i];
+                }
+                sample /= channels.length;
+                sample = Math.max(-1, Math.min(1, sample));
+                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                offset += 2;
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // ==========================================
+        // 5. Gemini API による高精度文字起こし処理
+        // ==========================================
+        function updateProgressUI(state, percent, title, detail) {
+            const progressBox = document.getElementById('progress-box');
+            const progressIcon = document.getElementById('progress-status-icon');
+            const progressTitle = document.getElementById('progress-title');
+            const progressPercent = document.getElementById('progress-percent');
+            const progressBar = document.getElementById('progress-bar');
+            const progressDetail = document.getElementById('progress-detail');
+
+            progressPercent.textContent = `${percent}%`;
+            progressBar.style.width = `${percent}%`;
+            progressTitle.textContent = title;
+            if (detail) progressDetail.textContent = detail;
+
+            if (state === 'processing') {
+                progressBox.className = "bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 transition-colors";
+                progressIcon.className = "w-2.5 h-2.5 rounded-full bg-myna-amber animate-ping";
+                progressBar.className = "bg-gradient-to-r from-amber-400 to-orange-500 h-2 rounded-full transition-all duration-500";
+            } else if (state === 'done') {
+                progressBox.className = "bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 transition-colors";
+                progressIcon.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+                progressBar.className = "bg-gradient-to-r from-emerald-400 to-teal-500 h-2 rounded-full transition-all duration-500";
+            } else if (state === 'error') {
+                progressBox.className = "bg-red-500/10 border border-red-500/30 rounded-2xl p-4 transition-colors";
+                progressIcon.className = "w-2.5 h-2.5 rounded-full bg-red-400";
+                progressBar.className = "bg-red-500 h-2 rounded-full transition-all duration-500";
+            } else {
+                progressBox.className = "theme-subpanel rounded-2xl p-4 transition-colors";
+                progressIcon.className = "w-2.5 h-2.5 rounded-full bg-slate-400";
+                progressBar.className = "bg-gradient-to-r from-amber-400 to-orange-500 h-2 rounded-full transition-all duration-500";
+            }
+        }
+
+        function setOutputActionsEnabled(enabled) {
+            document.getElementById('btn-download-word').disabled = !enabled;
+            document.getElementById('btn-download-md').disabled = !enabled;
+            document.getElementById('btn-copy-text').disabled = !enabled;
+            document.getElementById('btn-create-minutes-word').disabled = !enabled;
+            document.getElementById('btn-create-minutes-md').disabled = !enabled;
+
+            const minutesBadge = document.getElementById('minutes-status-badge');
+            if (enabled) {
+                minutesBadge.textContent = "作成可能";
+                minutesBadge.className = "text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            } else {
+                minutesBadge.textContent = "文字起こし完了後に利用可能";
+                minutesBadge.className = "text-xs font-bold px-3 py-1 rounded-full bg-slate-500/15 theme-text-secondary border border-slate-500/20";
+            }
+        }
+
+        // Gemini API 共通呼び出しヘルパー（モデル自動フォールバック ＋ 指数バックオフ付き）
+        async function fetchGeminiWithFallback(payload) {
+            const apiKey = getSavedApiKey();
+            // 優先順位順にモデルを自動切り替え（プレビュー版が非対応のキーでも安定版へ自動移行）
+            const candidateModels = [
+                'gemini-3-flash-preview',
+                'gemini-2.5-flash',
+                'gemini-2.0-flash'
+            ];
+
+            let lastError = null;
+
+            for (const model of candidateModels) {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                const delays = [1000, 2000, 4000, 8000];
+
+                for (let attempt = 0; attempt <= delays.length; attempt++) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            const errMsg = errData.error?.message || `HTTP error! status: ${response.status}`;
+                            // 認証・APIキー自体のエラーは即座に通知
+                            if (response.status === 400 && errMsg.toLowerCase().includes('api key')) {
+                                throw new Error(`APIキーエラー: ${errMsg}`);
+                            }
+                            if (response.status === 403) {
+                                throw new Error(`APIキーエラー: ${errMsg}`);
+                            }
+                            // 404（モデル未対応）の場合はリトライせず次のモデルへフォールバック
+                            if (response.status === 404) {
+                                lastError = new Error(errMsg);
+                                break;
+                            }
+                            throw new Error(errMsg);
+                        }
+
+                        const result = await response.json();
+                        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!text) throw new Error("Empty response from AI");
+                        return text.trim();
+                    } catch (err) {
+                        if (err.message.startsWith('APIキーエラー')) throw err;
+                        lastError = err;
+                        if (attempt === delays.length) break;
+                        await new Promise(res => setTimeout(res, delays[attempt]));
+                    }
+                }
+            }
+
+            throw lastError || new Error('AIとの通信に失敗しました。');
+        }
+
+        // Gemini API 文字起こし呼び出し
+        async function callGeminiTranscribe(base64Audio, mimeType, chunkIndex, totalChunks, previousSpeakersHint) {
+            // 先生のこだわり条件をシステム指示として厳密に設定
+            const systemInstruction = `あなたは学校の会議や研修の記録を担当する極めて優秀な書記です。
+以下の条件を**必ず**守って、正確に文字起こしを行ってください。
+
+【絶対厳守の条件】
+1. AIの勝手な要約や意訳、省略を一切しないこと。話された内容を一言一句忠実に書き起こすこと。
+2. 「えっと」「えー」「あのー」「まあ」「そのー」などの意味を持たないフィラー（言い淀み）は綺麗に削除すること。
+3. 声質や文脈から「誰が話しているのか」を判別し、「【話者A】」「【話者B】」のように話者ラベルをつけて分類すること。（役職や名前が会話内で呼ばれて判明している場合も、まずは一貫したラベルで統一すること）
+4. 読みやすいように、話題の切れ目や発言のまとまりごとに適切な句読点と改行を入れて段落に分けること。
+5. 余計な挨拶（「はい、文字起こしを行います」など）や解説は一切出力せず、文字起こし本文のみを出力すること。`;
+
+            let userPrompt = `この音声データ（全${totalChunks}パート中の第${chunkIndex + 1}パート）を、条件に従って正確に文字起こししてください。`;
+            if (previousSpeakersHint) {
+                userPrompt += `\n※前のパートでは以下の話者ラベルが使われています。同じ人物と思われる場合はラベルを引き継いでください：\n${previousSpeakersHint}`;
+            }
+
+            const payload = {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: userPrompt },
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64Audio
+                                }
+                            }
+                        ]
+                    }
+                ],
+                systemInstruction: {
+                    parts: [{ text: systemInstruction }]
+                }
+            };
+
+            return await fetchGeminiWithFallback(payload);
+        }
+
+        // 文字起こし実行ボタンのイベント
+        document.getElementById('btn-start-transcribe').addEventListener('click', async () => {
+            if (!currentAudioBlob || isTranscribing) return;
+
+            // 外部公開環境でAPIキーが未設定の場合は設定モーダルを開く
+            const isPreviewEnv = window.location.protocol === 'blob:' || window.location.hostname.includes('scf.usercontent.goog') || window.location.hostname === 'localhost';
+            if (!getSavedApiKey() && !isPreviewEnv) {
+                showToast("先に右上の「APIキー設定」からGemini APIキーを登録してください。", "error");
+                apiModal.classList.remove('hidden');
+                return;
+            }
+
+            isTranscribing = true;
+            const btnStart = document.getElementById('btn-start-transcribe');
+            btnStart.disabled = true;
+            btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // 結果表示枠と進行状況を初期化
+            const resultSection = document.getElementById('result-section');
+            const transcriptOutput = document.getElementById('transcript-output');
+            document.getElementById('speaker-replace-panel').classList.add('hidden');
+            setOutputActionsEnabled(false);
+
+            // 前回の議事録キャッシュをリセット
+            cachedMinutesText = "";
+            cachedMinutesSource = "";
+
+            transcriptOutput.innerHTML = `<span class="theme-text-muted italic">AIが音声を解析して文字起こしを進めています...</span>`;
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            updateProgressUI(
+                'processing',
+                5,
+                '進行状況：音声データを解析・分割中...',
+                '15分ごとのチャンク（塊）に分割しています。長時間の場合は少しお待ちください。'
+            );
+
+            try {
+                // 音声をデコードして15分（900秒）ごとに分割
+                const arrayBuffer = await currentAudioBlob.arrayBuffer();
+                const decodeCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await decodeCtx.decodeAudioData(arrayBuffer);
+                await decodeCtx.close();
+
+                const CHUNK_DURATION_SEC = 15 * 60; // 15分
+                const totalDuration = audioBuffer.duration;
+                const totalChunks = Math.max(1, Math.ceil(totalDuration / CHUNK_DURATION_SEC));
+                const samplesPerChunk = CHUNK_DURATION_SEC * audioBuffer.sampleRate;
+
+                let transcripts = [];
+                let detectedSpeakers = new Set();
+
+                for (let i = 0; i < totalChunks; i++) {
+                    const startSample = i * samplesPerChunk;
+                    const endSample = Math.min((i + 1) * samplesPerChunk, audioBuffer.length);
+
+                    const currentPercent = Math.round(10 + ((i / totalChunks) * 85));
+                    updateProgressUI(
+                        'processing',
+                        currentPercent,
+                        `進行状況：AIが文字起こし中（パート ${i + 1} / ${totalChunks}）`,
+                        `第${i + 1}パート（${formatSeconds(i * CHUNK_DURATION_SEC)} 〜 ${formatSeconds(Math.min((i + 1) * CHUNK_DURATION_SEC, totalDuration))}）を処理しています...`
+                    );
+
+                    const wavBlob = audioBufferToWavBlob(audioBuffer, startSample, endSample);
+                    const base64Audio = await blobToBase64(wavBlob);
+
+                    const speakerHint = detectedSpeakers.size > 0
+                        ? Array.from(detectedSpeakers).join(', ')
+                        : '';
+
+                    const chunkText = await callGeminiTranscribe(
+                        base64Audio,
+                        'audio/wav',
+                        i,
+                        totalChunks,
+                        speakerHint
+                    );
+
+                    transcripts.push(chunkText);
+
+                    // 途中経過をリアルタイムにテキスト枠へ反映
+                    transcriptOutput.textContent = transcripts.join('\n\n');
+                    transcriptOutput.scrollTop = transcriptOutput.scrollHeight;
+
+                    // 話者ラベルの抽出（引き継ぎ用）
+                    const matches = chunkText.match(/【[^】]+】/g);
+                    if (matches) {
+                        matches.forEach(m => detectedSpeakers.add(m));
+                    }
+                }
+
+                // 全パート結合
+                finalTranscriptText = transcripts.join('\n\n');
+                transcriptOutput.textContent = finalTranscriptText;
+
+                // 話者一括置換UIの生成
+                buildSpeakerReplacer(finalTranscriptText);
+
+                updateProgressUI(
+                    'done',
+                    100,
+                    `進行状況：完了！（全${totalChunks}パートの文字起こしが終了しました）`,
+                    '必要に応じて話者名を先生のお名前に一括置換し、下のボタンから議事録ファイルを作成できます。'
+                );
+                setOutputActionsEnabled(true);
+                showToast("文字起こしが完了しました！", "success");
+
+            } catch (err) {
+                console.error("Transcription Error:", err);
+                const isKeyErr = err.message && err.message.startsWith('APIキーエラー');
+                updateProgressUI(
+                    'error',
+                    0,
+                    isKeyErr ? '進行状況：APIキーを確認してください' : '進行状況：エラーが発生しました',
+                    isKeyErr
+                        ? '右上の「APIキー設定」から正しいGemini APIキーが入力されているかご確認ください。'
+                        : '音声の解析またはAIとの通信中にエラーが発生しました。ネットワーク環境やAPIキーをご確認の上、もう一度お試しください。'
+                );
+                showToast(isKeyErr ? "APIキーエラーが発生しました。設定をご確認ください。" : "文字起こし中にエラーが発生しました。", "error");
+            } finally {
+                isTranscribing = false;
+                btnStart.disabled = false;
+                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+
+        // ==========================================
+        // 6. 話者名の一括置換機能
+        // ==========================================
+        function buildSpeakerReplacer(text) {
+            const panel = document.getElementById('speaker-replace-panel');
+            const list = document.getElementById('speaker-replace-list');
+            list.innerHTML = '';
+
+            // 【話者A】のようなラベルを重複なく抽出
+            const matches = text.match(/【[^】]+】/g);
+            if (!matches) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            const uniqueSpeakers = [...new Set(matches)];
+            if (uniqueSpeakers.length === 0) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            uniqueSpeakers.forEach((speakerLabel) => {
+                const cleanName = speakerLabel.replace(/[【】]/g, '');
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "theme-input flex items-center space-x-1.5 p-2 rounded-xl";
+                itemDiv.innerHTML = `
+                    <span class="text-xs font-bold text-myna-amber shrink-0 px-1.5">${cleanName}</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 theme-text-muted shrink-0"></i>
+                    <input type="text" placeholder="例：校長先生" data-original="${speakerLabel}"
+                        class="speaker-input flex-1 min-w-0 text-xs px-2.5 py-1.5 bg-transparent border border-slate-500/30 rounded-lg focus:outline-none focus:border-myna-amber">
+                    <button type="button" class="btn-apply-speaker px-2.5 py-1.5 bg-myna-amber hover:bg-myna-amberHover text-slate-950 font-bold text-xs rounded-lg shrink-0 transition cursor-pointer">
+                        置換
+                    </button>
+                `;
+                list.appendChild(itemDiv);
+            });
+
+            lucide.createIcons();
+            panel.classList.remove('hidden');
+
+            // 置換ボタンのイベント登録
+            list.querySelectorAll('.btn-apply-speaker').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    const container = e.target.closest('div');
+                    const input = container.querySelector('.speaker-input');
+                    const originalLabel = input.getAttribute('data-original');
+                    const newName = input.value.trim();
+
+                    if (!newName) {
+                        showToast("新しい名前を入力してください", "info");
+                        return;
+                    }
+
+                    const newLabel = `【${newName.replace(/[【】]/g, '')}】`;
+                    finalTranscriptText = finalTranscriptText.split(originalLabel).join(newLabel);
+                    document.getElementById('transcript-output').textContent = finalTranscriptText;
+
+                    // 話者名が変わったので議事録キャッシュをリセット
+                    cachedMinutesText = "";
+                    cachedMinutesSource = "";
+
+                    showToast(`「${originalLabel}」を「${newLabel}」に一括置換しました`, "success");
+                    buildSpeakerReplacer(finalTranscriptText);
+                });
+            });
+        }
+
+        // 全文コピー機能（iFrame制限対応のため execCommand('copy') を使用）
+        document.getElementById('btn-copy-text').addEventListener('click', () => {
+            if (!finalTranscriptText) return;
+            const textarea = document.createElement('textarea');
+            textarea.value = finalTranscriptText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("文字起こし全文をクリップボードにコピーしました", "success");
+            } catch (err) {
+                showToast("コピーに失敗しました", "error");
+            }
+            document.body.removeChild(textarea);
+        });
+
+        // ==========================================
+        // 7. Word (.docx) および Markdown (.md) ファイル出力機能
+        // ==========================================
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        // Markdown (.md) ダウンロード（文字起こし全文）
+        document.getElementById('btn-download-md').addEventListener('click', () => {
+            if (!finalTranscriptText) return;
+            const info = getResolvedMeetingTitle();
+
+            const mdContent = `# ${info.title}\n\n- **実施日:** ${info.dateStr}\n- **作成ツール:** Myna（音声文字起こし）\n\n---\n\n${finalTranscriptText}\n`;
+
+            const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+            triggerDownload(blob, `${info.fileNameBase}.md`);
+            showToast(`「${info.fileNameBase}.md」を保存しました`, "success");
+        });
+
+        // Word (.docx) ダウンロード（文字起こし全文）
+        document.getElementById('btn-download-word').addEventListener('click', async () => {
+            if (!finalTranscriptText) return;
+            const info = getResolvedMeetingTitle();
+
+            try {
+                const { Document, Packer, Paragraph, TextRun, HeadingLevel, BorderStyle } = window.docx;
+
+                const lines = finalTranscriptText.split('\n');
+                const bodyParagraphs = [];
+
+                lines.forEach((line) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) {
+                        bodyParagraphs.push(new Paragraph({ text: "", spacing: { after: 120 } }));
+                        return;
+                    }
+
+                    // 【話者A】が含まれる行は話者名を太字にして見やすく整形
+                    const speakerMatch = trimmed.match(/^(【[^】]+】)(.*)$/);
+                    if (speakerMatch) {
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: speakerMatch[1],
+                                        bold: true,
+                                        color: "1E293B",
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    }),
+                                    new TextRun({
+                                        text: speakerMatch[2],
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                spacing: { after: 160, line: 340 }
+                            })
+                        );
+                    } else {
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: trimmed,
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                spacing: { after: 160, line: 340 }
+                            })
+                        );
+                    }
+                });
+
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                text: info.title,
+                                heading: HeadingLevel.HEADING_1,
+                                spacing: { after: 120 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `実施日: ${info.dateStr}`,
+                                        color: "64748B",
+                                        size: 20,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                border: {
+                                    bottom: {
+                                        color: "CBD5E1",
+                                        space: 6,
+                                        style: BorderStyle.SINGLE,
+                                        size: 6
+                                    }
+                                },
+                                spacing: { after: 300 }
+                            }),
+                            ...bodyParagraphs
+                        ]
+                    }]
+                });
+
+                const blob = await Packer.toBlob(doc);
+                triggerDownload(blob, `${info.fileNameBase}.docx`);
+                showToast(`「${info.fileNameBase}.docx」を保存しました`, "success");
+            } catch (err) {
+                console.error("Word generation error:", err);
+                showToast("Wordファイルの生成中にエラーが発生しました", "error");
+            }
+        });
+
+        // ==========================================
+        // 8. AI要約・議事録ファイルの作成＆直接ダウンロード機能
+        // ==========================================
+        async function callGeminiSummarizeMinutes(transcript) {
+            const systemInstruction = `あなたは学校の職員会議や校内研修・講演の記録をまとめる熟練の書記です。
+提供された「文字起こしテキスト」をもとに、先生方が後から読み返して一目で内容や学び、決定事項を把握できる、綺麗に整理された「記録・まとめ文書」を作成してください。
+
+【出力フォーマット（Markdown形式）】
+## 1. 概要・テーマ
+（今回の会議や研修の全体テーマ・目的を2〜3行で簡潔にまとめる）
+
+## 2. 主な内容・ポイント（トピック別整理）
+（話された流れに沿って話題や講義の章立てごとに小見出し「### 」や箇条書き「- 」を使い、誰がどのような発言・解説をしたかが分かるように整理する）
+
+## 3. 決定事項・今後の対応
+（※会議などで合意・決定したことや今後のアクションが話し合われていた場合のみ、この項目を作成して箇条書きでまとめる。研修や講演など決定事項がない内容の場合は、このセクション自体を出力せず省略すること）
+
+## 4. まとめ・重要キーワード
+（研修での重要な学びや、会議全体の結論・ポイントを簡潔に締めくくる）
+
+【作成時のルール】
+- 事実に基づき、推測や勝手な創作を交えないこと。
+- 余計な挨拶（「要約を作成しました」など）は一切書かず、本文のみを出力すること。`;
+
+            const payload = {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: `以下の文字起こしテキストを、内容（会議か研修か）に合わせて綺麗に整理・要約してください。\n\n---\n${transcript}` }
+                        ]
+                    }
+                ],
+                systemInstruction: {
+                    parts: [{ text: systemInstruction }]
+                }
+            };
+
+            return await fetchGeminiWithFallback(payload);
+        }
+
+        async function getOrGenerateMinutesText() {
+            // すでに同じ文字起こし内容から生成済みの場合はキャッシュを即座に返す
+            if (cachedMinutesText && cachedMinutesSource === finalTranscriptText) {
+                return cachedMinutesText;
+            }
+            const generated = await callGeminiSummarizeMinutes(finalTranscriptText);
+            cachedMinutesText = generated;
+            cachedMinutesSource = finalTranscriptText;
+            return generated;
+        }
+
+        function setMinutesButtonsBusy(busy, targetType) {
+            isGeneratingMinutes = busy;
+            const btnWord = document.getElementById('btn-create-minutes-word');
+            const btnMd = document.getElementById('btn-create-minutes-md');
+            const labelWord = document.getElementById('label-minutes-word');
+            const labelMd = document.getElementById('label-minutes-md');
+            const badge = document.getElementById('minutes-status-badge');
+
+            btnWord.disabled = busy;
+            btnMd.disabled = busy;
+
+            if (busy) {
+                badge.textContent = "AIが要約・整理中...";
+                badge.className = "text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                if (targetType === 'word') {
+                    labelWord.textContent = "AIが要約・議事録を作成中...";
+                } else {
+                    labelMd.textContent = "AIが要約・議事録を作成中...";
+                }
+            } else {
+                badge.textContent = "作成完了・保存済";
+                badge.className = "text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                labelWord.textContent = "要約・議事録を Word (.docx) で作成・保存";
+                labelMd.textContent = "要約・議事録を Markdown (.md) で作成・保存";
+            }
+        }
+
+        // 議事録 Markdown (.md) 作成・保存
+        document.getElementById('btn-create-minutes-md').addEventListener('click', async () => {
+            if (!finalTranscriptText || isGeneratingMinutes) return;
+
+            setMinutesButtonsBusy(true, 'md');
+            showToast("AIが文字起こしから要約・議事録を作成しています...", "info");
+
+            try {
+                const minutesText = await getOrGenerateMinutesText();
+                const info = getResolvedMeetingTitle();
+                const mdContent = `# ${info.title}（要約・記録）\n\n- **実施日:** ${info.dateStr}\n- **作成ツール:** Myna（AI要約・議事録）\n\n---\n\n${minutesText}\n`;
+
+                const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+                triggerDownload(blob, `${info.fileNameBase}_議事録.md`);
+                showToast(`「${info.fileNameBase}_議事録.md」を作成・保存しました！`, "success");
+            } catch (err) {
+                console.error("Minutes MD error:", err);
+                showToast("要約・議事録の作成中にエラーが発生しました。", "error");
+            } finally {
+                setMinutesButtonsBusy(false, 'md');
+            }
+        });
+
+        // 議事録 Word (.docx) 作成・保存
+        document.getElementById('btn-create-minutes-word').addEventListener('click', async () => {
+            if (!finalTranscriptText || isGeneratingMinutes) return;
+
+            setMinutesButtonsBusy(true, 'word');
+            showToast("AIが文字起こしから要約・議事録を作成しています...", "info");
+
+            try {
+                const minutesText = await getOrGenerateMinutesText();
+                const info = getResolvedMeetingTitle();
+                const { Document, Packer, Paragraph, TextRun, HeadingLevel, BorderStyle } = window.docx;
+
+                const lines = minutesText.split('\n');
+                const bodyParagraphs = [];
+
+                lines.forEach((line) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) {
+                        bodyParagraphs.push(new Paragraph({ text: "", spacing: { after: 100 } }));
+                        return;
+                    }
+
+                    // Markdown見出し（## / ###）と箇条書き（- / *）をWordの適切な書式に変換
+                    if (trimmed.startsWith('## ')) {
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                text: trimmed.replace(/^##\s+/, ''),
+                                heading: HeadingLevel.HEADING_2,
+                                spacing: { before: 240, after: 120 }
+                            })
+                        );
+                    } else if (trimmed.startsWith('### ')) {
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                text: trimmed.replace(/^###\s+/, ''),
+                                heading: HeadingLevel.HEADING_3,
+                                spacing: { before: 180, after: 80 }
+                            })
+                        );
+                    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                        const bulletText = trimmed.replace(/^[-*]\s+/, '').replace(/\*\*/g, '');
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: bulletText,
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                bullet: { level: 0 },
+                                spacing: { after: 100, line: 320 }
+                            })
+                        );
+                    } else {
+                        const cleanText = trimmed.replace(/\*\*/g, '');
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: cleanText,
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                spacing: { after: 140, line: 340 }
+                            })
+                        );
+                    }
+                });
+
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                text: `${info.title}（要約・記録）`,
+                                heading: HeadingLevel.HEADING_1,
+                                spacing: { after: 120 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `実施日: ${info.dateStr}`,
+                                        color: "64748B",
+                                        size: 20,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                border: {
+                                    bottom: {
+                                        color: "CBD5E1",
+                                        space: 6,
+                                        style: BorderStyle.SINGLE,
+                                        size: 6
+                                    }
+                                },
+                                spacing: { after: 280 }
+                            }),
+                            ...bodyParagraphs
+                        ]
+                    }]
+                });
+
+                const blob = await Packer.toBlob(doc);
+                triggerDownload(blob, `${info.fileNameBase}_議事録.docx`);
+                showToast(`「${info.fileNameBase}_議事録.docx」を作成・保存しました！`, "success");
+            } catch (err) {
+                console.error("Minutes Word error:", err);
+                showToast("要約・議事録のWord生成中にエラーが発生しました。", "error");
+            } finally {
+                setMinutesButtonsBusy(false, 'word');
+            }
+        });
+    </script>
+</body>
+</html>
