@@ -174,6 +174,52 @@
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.35);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.55);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased">
+
+    <!-- ヘッダー（九官鳥の漆黒×羽の光彩テーマ） -->
+    <header class="myna-header-bg text-white shadow-xl border-b border-white/10">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-3.5 min-w-0">
+                <!-- 大きく存在感のある九官鳥（Myna）カスタムSVGロゴ -->
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950 border border-amber-400/40 flex items-center justify-center shadow-lg shadow-amber-500/15 shrink-0 p-2">
+                    <svg class="w-full h-full" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 九官鳥の体（艶やかな漆黒ブルー） -->
+                        <path d="M16 44C16 28 24 16 36 16C43 16 48 21 48 28C48 39 40 48 26 48H14L16 44Z" fill="#1E293B" stroke="#F8FAFC" stroke-width="2.2" stroke-linejoin="round"/>
+                        <!-- 羽のハイライト -->
+                        <path d="M24 38C28 32 35 30 41 33" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" opacity="0.65"/>
+                        <!-- 白い翼の斑点（九官鳥の特徴） -->
+                        <path d="M25 35C29 33 34 34 36 37C33 39 28 39 25 35Z" fill="#F8FAFC"/>
+                        <!-- 鮮やかな黄色いくちばし -->
+                        <path d="M47 23L58 26L47 29.5V23Z" fill="#F59E0B" stroke="#FBBF24" stroke-width="1.2" stroke-linejoin="round"/>
+                        <!-- 目の周りの黄色い肉垂（九官鳥の特徴） -->
+                        <path d="M37 22C39 22 41 23.5 41 25.5" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
+                        <!-- 瞳 -->
+                        <circle cx="40" cy="23.5" r="2.2" fill="#FFFFFF"/>
+                        <circle cx="40.5" cy="23.5" r="1" fill="#0F172A"/>
+                        <!-- 音声の波紋アクセント -->
+                        <path d="M10 26C8 29 8 33 10 36" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M6 23C3 28 3 34 6 39" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                    </svg>
+                </div>
+                <div class="truncate">
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">Myna</h1>
+                    <p class="text-xs text-slate-300 tracking-wide truncate">会議・研修 高精度文字起こしツール</p>
+                </div>
+            </div>
+
             <!-- 右側アクションボタン群（履歴 ＋ テーマ切替 ＋ APIキー設定） -->
             <div class="flex items-center space-x-2 shrink-0">
                 <!-- 過去の履歴ボタン -->
@@ -1348,20 +1394,27 @@
 
         // Gemini API 文字起こし呼び出し
         async function callGeminiTranscribe(base64Audio, mimeType, chunkIndex, totalChunks, previousSpeakersHint) {
-            // 先生のこだわり条件をシステム指示として厳密に設定
-            const systemInstruction = `あなたは学校の会議や研修の記録を担当する極めて優秀な書記です。
-以下の条件を**必ず**守って、正確に文字起こしを行ってください。
+            // 先生の厳格な7つの条件をシステム指示として設定
+            const systemInstruction = `あなたは学校の会議や研修の記録を担当する極めて忠実な書記です。
+以下の7つの条件を**絶対厳守**して、音声を正確に文字起こししてください。
 
-【絶対厳守の条件】
-1. AIの勝手な要約や意訳、省略を一切しないこと。話された内容を一言一句忠実に書き起こすこと。
-2. 「えっと」「えー」「あのー」「まあ」「そのー」などの意味を持たないフィラー（言い淀み）は綺麗に削除すること。
-3. 声質や文脈から「誰が話しているのか」を判別し、「【話者A】」「【話者B】」のように話者ラベルをつけて分類すること。（役職や名前が会話内で呼ばれて判明している場合も、まずは一貫したラベルで統一すること）
-4. 読みやすいように、話題の切れ目や発言のまとまりごとに適切な句読点と改行を入れて段落に分けること。
-5. 余計な挨拶（「はい、文字起こしを行います」など）や解説は一切出力せず、文字起こし本文のみを出力すること。`;
+【絶対厳守の7条件】
+1. 要約・言い換え・文の整理・補足をしない。聞こえた言葉をそのまま書く。
+2. 聞き取れない、自信がない箇所は推測で埋めず、「［聞き取り不能］」と書く。音声にない発言、相槌、締めの言葉を絶対に作らない。
+3. 言い淀み、言い直し、繰り返し、「えー」「あー」「えっと」「あのー」などの純粋なフィラーのみ省略して良い。
+4. 数え上げ・言い直しも省略しない。「下から1,2,3,4行目」などは短縮せずそのまま書く。
+5. 話者が変わるたびに必ず改行し、「話者A：発言内容」の形式で書く（最初は話者A、話者B、話者C…と分類する）。
+   - 短い相槌や質問も、別の話者の発言として独立させる。他の話者の発言に混ぜない。
+   - 複数の話者の発言を一つの段落にまとめない。
+6. 会議の内容を判断・評価・補足しない。日付や肩書きなど、音声にない情報を書かない。
+7. 録音の最初から最後まで、雑談・終了後の会話も含めて全て書く。途中で省略しない。
 
-            let userPrompt = `この音声データ（全${totalChunks}パート中の第${chunkIndex + 1}パート）を、条件に従って正確に文字起こししてください。`;
+【出力ルール】
+- 余計な挨拶（「はい、文字起こしを行います」など）や解説、見出しは一切出力せず、文字起こし本文のみを出力すること。`;
+
+            let userPrompt = `この音声データ（全${totalChunks}パート中の第${chunkIndex + 1}パート）を、上記7つの条件に厳密に従って最初から最後まで省略せずに文字起こししてください。`;
             if (previousSpeakersHint) {
-                userPrompt += `\n※前のパートでは以下の話者ラベルが使われています。同じ人物と思われる場合はラベルを引き継いでください：\n${previousSpeakersHint}`;
+                userPrompt += `\n※前のパートでは以下の話者名が使われています。同じ人物と思われる場合は同じ話者名を引き継いでください：\n${previousSpeakersHint}`;
             }
 
             const payload = {
@@ -1381,6 +1434,9 @@
                 ],
                 systemInstruction: {
                     parts: [{ text: systemInstruction }]
+                },
+                generationConfig: {
+                    temperature: 0.1
                 }
             };
 
@@ -1532,264 +1588,6 @@
             const list = document.getElementById('speaker-replace-list');
             list.innerHTML = '';
 
-            // 【話者A】のようなラベルを重複なく抽出
-            const matches = text.match(/【[^】]+】/g);
-            if (!matches) {
-                panel.classList.add('hidden');
-                return;
-            }
-
-            const uniqueSpeakers = [...new Set(matches)];
-            if (uniqueSpeakers.length === 0) {
-                panel.classList.add('hidden');
-                return;
-            }
-
-            uniqueSpeakers.forEach((speakerLabel) => {
-                const cleanName = speakerLabel.replace(/[【】]/g, '');
-                const savedDraft = preservedInputs[speakerLabel] || '';
-                const itemDiv = document.createElement('div');
-                itemDiv.className = "theme-input flex items-center space-x-1.5 p-2 rounded-xl";
-                itemDiv.innerHTML = `
-                    <span class="text-xs font-bold text-myna-amber shrink-0 px-1.5">${escapeHtml(cleanName)}</span>
-                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 theme-text-muted shrink-0"></i>
-                    <input type="text" placeholder="例：〇〇先生" data-original="${escapeHtml(speakerLabel)}" value="${escapeHtml(savedDraft)}"
-                        class="speaker-input flex-1 min-w-0 text-xs px-2.5 py-1.5 bg-transparent border border-slate-500/30 rounded-lg focus:outline-none focus:border-myna-amber">
-                    <button type="button" class="btn-apply-speaker px-2.5 py-1.5 bg-myna-amber hover:bg-myna-amberHover text-slate-950 font-bold text-xs rounded-lg shrink-0 transition cursor-pointer">
-                        置換
-                    </button>
-                `;
-                list.appendChild(itemDiv);
-            });
-
-            lucide.createIcons();
-            panel.classList.remove('hidden');
-
-            // 置換ボタンのイベント登録
-            list.querySelectorAll('.btn-apply-speaker').forEach((btn) => {
-                btn.addEventListener('click', (e) => {
-                    const container = e.target.closest('div');
-                    const input = container.querySelector('.speaker-input');
-                    const originalLabel = input.getAttribute('data-original');
-                    const newName = input.value.trim();
-
-                    if (!newName) {
-                        showToast("新しい名前を入力してください", "info");
-                        return;
-                    }
-
-                    // 他の話者ボックスに入力途中だった内容をすべて退避・保持する
-                    const preservedInputs = {};
-                    list.querySelectorAll('.speaker-input').forEach((otherInput) => {
-                        const key = otherInput.getAttribute('data-original');
-                        if (key !== originalLabel && otherInput.value.trim() !== '') {
-                            preservedInputs[key] = otherInput.value;
-                        }
-                    });
-
-                    const newLabel = `【${newName.replace(/[【】]/g, '')}】`;
-                    finalTranscriptText = finalTranscriptText.split(originalLabel).join(newLabel);
-                    document.getElementById('transcript-output').textContent = finalTranscriptText;
-
-                    // 話者名が変わったので議事録キャッシュをリセットし、履歴データも更新
-                    cachedMinutesText = "";
-                    cachedMinutesSource = "";
-                    upsertCurrentTranscriptToHistory();
-
-                    showToast(`「${originalLabel}」を「${newLabel}」に一括置換しました`, "success");
-                    buildSpeakerReplacer(finalTranscriptText, preservedInputs);
-                });
-            });
-        }
-
-        // 全文コピー機能（iFrame制限対応のため execCommand('copy') を使用）
-        document.getElementById('btn-copy-text').addEventListener('click', () => {
-            if (!finalTranscriptText) return;
-            const textarea = document.createElement('textarea');
-            textarea.value = finalTranscriptText;
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                showToast("文字起こし全文をクリップボードにコピーしました", "success");
-            } catch (err) {
-                showToast("コピーに失敗しました", "error");
-            }
-            document.body.removeChild(textarea);
-        });
-
-        // ==========================================
-        // 7. Word (.docx) および Markdown (.md) ファイル出力機能
-        // ==========================================
-        function triggerDownload(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }
-
-        // Markdown (.md) ダウンロード（文字起こし全文）
-        document.getElementById('btn-download-md').addEventListener('click', () => {
-            if (!finalTranscriptText) return;
-            const info = getResolvedMeetingTitle();
-
-            const mdContent = `# ${info.title}\n\n- **実施日:** ${info.dateStr}\n- **作成ツール:** Myna（音声文字起こし）\n\n---\n\n${finalTranscriptText}\n`;
-
-            const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
-            triggerDownload(blob, `${info.fileNameBase}.md`);
-            showToast(`「${info.fileNameBase}.md」を保存しました`, "success");
-        });
-
-        // Word (.docx) ダウンロード（文字起こし全文）
-        document.getElementById('btn-download-word').addEventListener('click', async () => {
-            if (!finalTranscriptText) return;
-            const info = getResolvedMeetingTitle();
-
-            try {
-                const { Document, Packer, Paragraph, TextRun, HeadingLevel, BorderStyle } = window.docx;
-
-                const lines = finalTranscriptText.split('\n');
-                const bodyParagraphs = [];
-
-                lines.forEach((line) => {
-                    const trimmed = line.trim();
-                    if (!trimmed) {
-                        bodyParagraphs.push(new Paragraph({ text: "", spacing: { after: 120 } }));
-                        return;
-                    }
-
-                    // 【話者A】が含まれる行は話者名を太字にして見やすく整形
-                    const speakerMatch = trimmed.match(/^(【[^】]+】)(.*)$/);
-                    if (speakerMatch) {
-                        bodyParagraphs.push(
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: speakerMatch[1],
-                                        bold: true,
-                                        color: "1E293B",
-                                        size: 22,
-                                        font: "游ゴシック"
-                                    }),
-                                    new TextRun({
-                                        text: speakerMatch[2],
-                                        size: 22,
-                                        font: "游ゴシック"
-                                    })
-                                ],
-                                spacing: { after: 160, line: 340 }
-                            })
-                        );
-                    } else {
-                        bodyParagraphs.push(
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: trimmed,
-                                        size: 22,
-                                        font: "游ゴシック"
-                                    })
-                                ],
-                                spacing: { after: 160, line: 340 }
-                            })
-                        );
-                    }
-                });
-
-                const doc = new Document({
-                    sections: [{
-                        properties: {},
-                        children: [
-                            new Paragraph({
-                                text: info.title,
-                                heading: HeadingLevel.HEADING_1,
-                                spacing: { after: 120 }
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: `実施日: ${info.dateStr}`,
-                                        color: "64748B",
-                                        size: 20,
-                                        font: "游ゴシック"
-                                    })
-                                ],
-                                border: {
-                                    bottom: {
-                                        color: "CBD5E1",
-                                        space: 6,
-                                        style: BorderStyle.SINGLE,
-                                        size: 6
-                                    }
-                                },
-                                spacing: { after: 300 }
-                            }),
-                            ...bodyParagraphs
-                        ]
-                    }]
-                });
-        // Gemini API 文字起こし呼び出し
-        async function callGeminiTranscribe(base64Audio, mimeType, chunkIndex, totalChunks, previousSpeakersHint) {
-            // 先生の厳格な7つの条件をシステム指示として設定
-            const systemInstruction = `あなたは学校の会議や研修の記録を担当する極めて忠実な書記です。
-以下の7つの条件を**絶対厳守**して、音声を正確に文字起こししてください。
-
-【絶対厳守の7条件】
-1. 要約・言い換え・文の整理・補足をしない。聞こえた言葉をそのまま書く。
-2. 聞き取れない、自信がない箇所は推測で埋めず、「［聞き取り不能］」と書く。音声にない発言、相槌、締めの言葉を絶対に作らない。
-3. 言い淀み、言い直し、繰り返し、「えー」「あー」「えっと」「あのー」などの純粋なフィラーのみ省略して良い。
-4. 数え上げ・言い直しも省略しない。「下から1,2,3,4行目」などは短縮せずそのまま書く。
-5. 話者が変わるたびに必ず改行し、「話者A：発言内容」の形式で書く（最初は話者A、話者B、話者C…と分類する）。
-   - 短い相槌や質問も、別の話者の発言として独立させる。他の話者の発言に混ぜない。
-   - 複数の話者の発言を一つの段落にまとめない。
-6. 会議の内容を判断・評価・補足しない。日付や肩書きなど、音声にない情報を書かない。
-7. 録音の最初から最後まで、雑談・終了後の会話も含めて全て書く。途中で省略しない。
-
-【出力ルール】
-- 余計な挨拶（「はい、文字起こしを行います」など）や解説、見出しは一切出力せず、文字起こし本文のみを出力すること。`;
-
-            let userPrompt = `この音声データ（全${totalChunks}パート中の第${chunkIndex + 1}パート）を、上記7つの条件に厳密に従って最初から最後まで省略せずに文字起こししてください。`;
-            if (previousSpeakersHint) {
-                userPrompt += `\n※前のパートでは以下の話者名が使われています。同じ人物と思われる場合は同じ話者名を引き継いでください：\n${previousSpeakersHint}`;
-            }
-
-            const payload = {
-                contents: [
-                    {
-                        role: "user",
-                        parts: [
-                            { text: userPrompt },
-                            {
-                                inlineData: {
-                                    mimeType: mimeType,
-                                    data: base64Audio
-                                }
-                            }
-                        ]
-                    }
-                ],
-                systemInstruction: {
-                    parts: [{ text: systemInstruction }]
-                },
-                generationConfig: {
-                    temperature: 0.1
-                }
-            };
-
-            return await fetchGeminiWithFallback(payload);
-        }
-        // ==========================================
-        // 6. 話者名の一括置換機能
-        // ==========================================
-        function buildSpeakerReplacer(text, preservedInputs = {}) {
-            const panel = document.getElementById('speaker-replace-panel');
-            const list = document.getElementById('speaker-replace-list');
-            list.innerHTML = '';
-
             // 行頭の「話者A：」または「【話者A】」形式のラベルを重複なく抽出
             const lines = text.split('\n');
             const extractedTokens = [];
@@ -1878,6 +1676,199 @@
                 });
             });
         }
+
+        // 全文コピー機能（iFrame制限対応のため execCommand('copy') を使用）
+        document.getElementById('btn-copy-text').addEventListener('click', () => {
+            if (!finalTranscriptText) return;
+            const textarea = document.createElement('textarea');
+            textarea.value = finalTranscriptText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("文字起こし全文をクリップボードにコピーしました", "success");
+            } catch (err) {
+                showToast("コピーに失敗しました", "error");
+            }
+            document.body.removeChild(textarea);
+        });
+
+        // ==========================================
+        // 7. Word (.docx) および Markdown (.md) ファイル出力機能
+        // ==========================================
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        // Markdown (.md) ダウンロード（文字起こし全文）
+        document.getElementById('btn-download-md').addEventListener('click', () => {
+            if (!finalTranscriptText) return;
+            const info = getResolvedMeetingTitle();
+
+            const mdContent = `# ${info.title}\n\n- **実施日:** ${info.dateStr}\n- **作成ツール:** Myna（音声文字起こし）\n\n---\n\n${finalTranscriptText}\n`;
+
+            const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+            triggerDownload(blob, `${info.fileNameBase}.md`);
+            showToast(`「${info.fileNameBase}.md」を保存しました`, "success");
+        });
+
+        // Word (.docx) ダウンロード（文字起こし全文）
+        document.getElementById('btn-download-word').addEventListener('click', async () => {
+            if (!finalTranscriptText) return;
+            const info = getResolvedMeetingTitle();
+
+            try {
+                const { Document, Packer, Paragraph, TextRun, HeadingLevel, BorderStyle } = window.docx;
+
+                const lines = finalTranscriptText.split('\n');
+                const bodyParagraphs = [];
+
+                lines.forEach((line) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) {
+                        bodyParagraphs.push(new Paragraph({ text: "", spacing: { after: 120 } }));
+                        return;
+                    }
+
+                    // 「話者A：」または「【話者A】」が含まれる行は話者名を太字にして見やすく整形
+                    const speakerMatch = trimmed.match(/^([^：\n]{1,20}：|【[^】]+】)(.*)$/);
+                    if (speakerMatch) {
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: speakerMatch[1],
+                                        bold: true,
+                                        color: "1E293B",
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    }),
+                                    new TextRun({
+                                        text: speakerMatch[2],
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                spacing: { after: 160, line: 340 }
+                            })
+                        );
+                    } else {
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: trimmed,
+                                        size: 22,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                spacing: { after: 160, line: 340 }
+                            })
+                        );
+                    }
+                });
+
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                text: info.title,
+                                heading: HeadingLevel.HEADING_1,
+                                spacing: { after: 120 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `実施日: ${info.dateStr}`,
+                                        color: "64748B",
+                                        size: 20,
+                                        font: "游ゴシック"
+                                    })
+                                ],
+                                border: {
+                                    bottom: {
+                                        color: "CBD5E1",
+                                        space: 6,
+                                        style: BorderStyle.SINGLE,
+                                        size: 6
+                                    }
+                                },
+                                spacing: { after: 300 }
+                            }),
+                            ...bodyParagraphs
+                        ]
+                    }]
+                });
+
+                const blob = await Packer.toBlob(doc);
+                triggerDownload(blob, `${info.fileNameBase}.docx`);
+                showToast(`「${info.fileNameBase}.docx」を保存しました`, "success");
+            } catch (err) {
+                console.error("Word generation error:", err);
+                showToast("Wordファイルの生成中にエラーが発生しました。", "error");
+            }
+        });
+
+        // ==========================================
+        // 8. AI要約・議事録ファイル作成機能（プレビューなし・直接ダウンロード）
+        // ==========================================
+        async function callGeminiSummarizeMinutes(transcriptText) {
+            const systemInstruction = `あなたは学校現場（職員会議・学年会・委員会・校内研修・外部講師による講演など）の記録作成を担当する優秀な書記です。
+提供される文字起こし全文をもとに、教職員が後から読んで内容をすぐに把握できる、分かりやすく整理された「要約・記録（議事録）」を作成してください。
+
+【出力フォーマット（Markdown形式）】
+録音の内容が「会議」か「研修・講演」かを文脈から判断し、以下の構成で出力してください。
+※前置きや挨拶（「承知いたしました」など）は一切書かず、見出しから直接出力してください。
+
+## 1. 概要・テーマ
+（今回の会議や研修の全体テーマ・目的を2〜3行で簡潔に記述）
+
+## 2. 主な内容・ポイント
+（話された流れや話題・講義の章立てごとに「### 話題タイトル」の小見出しをつけ、要点を箇条書き「- 」で分かりやすく整理。発言者や講師の重要な指摘も反映すること）
+
+## 3. 決定事項・今後の対応
+（※会議などで「決まったこと」「今後の予定・連絡事項・役割分担」が話されていた場合のみ、このセクションを出力して箇条書きでまとめること。研修や講演など、決定事項やアクションがない内容の場合は、この「## 3. 決定事項・今後の対応」のセクション自体を出力せず省略すること）
+
+## まとめ・重要キーワード
+（研修での学びの要点、または会議全体の結論を締めくくりとして簡潔に整理）`;
+
+            const payload = {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: `以下の文字起こしデータから、整理された要約・記録を作成してください。\n\n【文字起こしデータ】\n${transcriptText}` }
+                        ]
+                    }
+                ],
+                systemInstruction: {
+                    parts: [{ text: systemInstruction }]
+                }
+            };
+
+            return await fetchGeminiWithFallback(payload);
+        }
+
+        async function getOrGenerateMinutesText() {
+            // 外部公開環境でAPIキーが未設定の場合は設定モーダルを開く
+            const isPreviewEnv = window.location.protocol === 'blob:' || window.location.hostname.includes('scf.usercontent.goog') || window.location.hostname === 'localhost';
+            if (!getSavedApiKey() && !isPreviewEnv) {
+                apiModal.classList.remove('hidden');
+                throw new Error("APIキーが未設定です");
+            }
+
+            // 同じ文字起こし内容に対して既に生成済みであればキャッシュを再利用（待ち時間ゼロ）
+            if (cachedMinutesText && cachedMinutesSource === finalTranscriptText) {
+                return cachedMinutesText;
+            }
             const generated = await callGeminiSummarizeMinutes(finalTranscriptText);
             cachedMinutesText = generated;
             cachedMinutesSource = finalTranscriptText;
@@ -1966,26 +1957,26 @@
                             })
                         );
                     } else if (trimmed.startsWith('### ')) {
-                    // 「話者A：」または「【話者A】」が含まれる行は話者名を太字にして見やすく整形
-                    const speakerMatch = trimmed.match(/^([^：\n]{1,20}：|【[^】]+】)(.*)$/);
-                    if (speakerMatch) {
+                        bodyParagraphs.push(
+                            new Paragraph({
+                                text: trimmed.replace(/^###\s+/, ''),
+                                heading: HeadingLevel.HEADING_3,
+                                spacing: { before: 180, after: 80 }
+                            })
+                        );
+                    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                        const bulletText = trimmed.replace(/^[-*]\s+/, '').replace(/\*\*/g, '');
                         bodyParagraphs.push(
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: speakerMatch[1],
-                                        bold: true,
-                                        color: "1E293B",
-                                        size: 22,
-                                        font: "游ゴシック"
-                                    }),
-                                    new TextRun({
-                                        text: speakerMatch[2],
+                                        text: bulletText,
                                         size: 22,
                                         font: "游ゴシック"
                                     })
                                 ],
-                                spacing: { after: 160, line: 340 }
+                                bullet: { level: 0 },
+                                spacing: { after: 100, line: 320 }
                             })
                         );
                     } else {
