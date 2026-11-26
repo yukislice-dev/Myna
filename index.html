@@ -607,44 +607,89 @@
             </p>
 
             <!-- 出力スタイル選択スイッチ -->
-            <div class="space-y-2">
+            <div class="space-y-2.5">
                 <label class="block text-xs font-bold theme-text-secondary flex items-center space-x-1.5">
                     <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-emerald-400"></i>
-                    <span>出力スタイルの選択</span>
+                    <span>出力スタイルの選択（場面に合わせてお選びください）</span>
                 </label>
-                <div id="minutes-style-group" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div id="minutes-style-group" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                     <button type="button" data-style="standard"
-                        class="minutes-style-btn active px-3 py-2.5 rounded-xl text-xs font-bold border border-emerald-400 bg-emerald-500/20 text-emerald-300 transition text-left cursor-pointer">
-                        <div class="flex items-center space-x-1.5">
-                            <i data-lucide="scale" class="w-3.5 h-3.5 shrink-0"></i>
-                            <span>標準バランス型</span>
+                        class="minutes-style-btn active px-3 py-2.5 rounded-xl text-xs font-bold border border-emerald-400 bg-emerald-500/20 text-emerald-300 transition text-left cursor-pointer flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="flex items-center space-x-1.5">
+                                    <i data-lucide="scale" class="w-3.5 h-3.5 shrink-0"></i>
+                                    <span>なんでも対応</span>
+                                </span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/25 text-emerald-200 font-medium shrink-0">標準・おまかせ</span>
+                            </div>
+                            <p class="text-[10px] opacity-85 font-normal mt-1">迷ったらコレ・会議も研修も自動判別</p>
                         </div>
-                        <p class="text-[10px] opacity-80 font-normal mt-0.5">会議・研修に自動対応</p>
                     </button>
                     <button type="button" data-style="meeting"
-                        class="minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer">
-                        <div class="flex items-center space-x-1.5">
-                            <i data-lucide="check-square" class="w-3.5 h-3.5 shrink-0 text-amber-400"></i>
-                            <span>職員会議・決定重視</span>
+                        class="minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="flex items-center space-x-1.5">
+                                    <i data-lucide="check-square" class="w-3.5 h-3.5 shrink-0 text-amber-400"></i>
+                                    <span>会議・打ち合わせ</span>
+                                </span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium shrink-0">結論・ToDo特化</span>
+                            </div>
+                            <p class="text-[10px] theme-text-muted font-normal mt-1">決定事項と役割分担を最優先で整理</p>
                         </div>
-                        <p class="text-[10px] theme-text-muted font-normal mt-0.5">結論・役割分担を強調</p>
                     </button>
                     <button type="button" data-style="training"
-                        class="minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer">
-                        <div class="flex items-center space-x-1.5">
-                            <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0 text-sky-400"></i>
-                            <span>校内研修・学び整理</span>
+                        class="minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="flex items-center space-x-1.5">
+                                    <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0 text-sky-400"></i>
+                                    <span>校内研修・講演</span>
+                                </span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 font-medium shrink-0">解説しっかり</span>
+                            </div>
+                            <p class="text-[10px] theme-text-muted font-normal mt-1">講義の要点・具体例・キーワードを整理</p>
                         </div>
-                        <p class="text-[10px] theme-text-muted font-normal mt-0.5">講義要点・キーワード</p>
                     </button>
                     <button type="button" data-style="report"
-                        class="minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer">
-                        <div class="flex items-center space-x-1.5">
-                            <i data-lucide="clipboard-check" class="w-3.5 h-3.5 shrink-0 text-purple-400"></i>
-                            <span>個人メモ・振り返りシート風</span>
+                        class="minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="flex items-center space-x-1.5">
+                                    <i data-lucide="clipboard-check" class="w-3.5 h-3.5 shrink-0 text-purple-400"></i>
+                                    <span>出張報告・レポート</span>
+                                </span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-medium shrink-0">実践・所感重視</span>
+                            </div>
+                            <p class="text-[10px] theme-text-muted font-normal mt-1">学び＋自校での実践アイデア・課題付き</p>
                         </div>
-                        <p class="text-[10px] theme-text-muted font-normal mt-0.5">自己研修・出張報告用</p>
                     </button>
+                </div>
+
+                <!-- 選択中スタイルのリアルタイム構成プレビューバー -->
+                <div id="minutes-structure-preview" class="theme-subpanel rounded-2xl p-3.5 border border-emerald-500/25 space-y-2 transition-all">
+                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                        <span class="text-[11px] font-bold theme-text-primary flex items-center space-x-1.5">
+                            <i data-lucide="layout-list" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>このスタイルで作られる見出し構成：</span>
+                        </span>
+                        <span id="minutes-detail-meter" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">
+                            情報量：★★★☆☆（標準バランス）
+                        </span>
+                    </div>
+                    <div id="minutes-structure-tags" class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                        <span class="theme-input px-2.5 py-1 rounded-lg font-medium">① 概要・テーマ</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 theme-text-muted"></i>
+                        <span class="theme-input px-2.5 py-1 rounded-lg font-medium">② 主な内容・ポイント</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 theme-text-muted"></i>
+                        <span class="theme-input px-2.5 py-1 rounded-lg font-medium">③ 決定事項・対応(あれば)</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 theme-text-muted"></i>
+                        <span class="theme-input px-2.5 py-1 rounded-lg font-medium">④ まとめ・キーワード</span>
+                    </div>
+                    <p id="minutes-usecase-hint" class="text-[11px] theme-text-secondary">
+                        💡 会議か研修かをAIが自動判別し、過不足なくすっきり整理します。職員室での情報共有にも最適です。
+                    </p>
                 </div>
             </div>
 
@@ -2319,14 +2364,62 @@
         // ==========================================
         // 8. AI要約・議事録ファイル作成機能（スタイル選択対応・直接ダウンロード）
         // ==========================================
+        const MINUTES_STYLE_META = {
+            standard: {
+                label: 'なんでも対応',
+                meter: '情報量：★★★☆☆（標準バランス）',
+                sections: ['① 概要・テーマ', '② 主な内容・ポイント', '③ 決定事項・対応(あれば)', '④ まとめ・キーワード'],
+                highlightIdx: -1,
+                hint: '💡 会議か研修かをAIが自動判別し、過不足なくすっきり整理します。職員室での情報共有にも最適です。'
+            },
+            meeting: {
+                label: '会議・打ち合わせ',
+                meter: '情報量：★★★☆☆（結論・ToDo特化）',
+                sections: ['① 会議の概要', '② 決定事項（最重要）', '③ 役割分担・ToDo', '④ 議題ごとの議論要旨'],
+                highlightIdx: 1,
+                hint: '💡 「何が決まり、誰がいつまでに何をするか」を冒頭に配置します。職員会議・学年会・委員会に最適です。'
+            },
+            training: {
+                label: '校内研修・講演',
+                meter: '情報量：★★★★☆（解説しっかり・詳細）',
+                sections: ['① 研修のテーマ・ねらい', '② 講義の要点（章立て解説）', '③ 実践ポイント・重要語句', '④ 全体のまとめ'],
+                highlightIdx: 1,
+                hint: '💡 講師の解説や具体例を省略せず丁寧に章立てします。校内研修や外部講演の学習ノートに最適です。'
+            },
+            report: {
+                label: '出張報告・レポート',
+                meter: '情報量：★★★☆☆（実践・所感重視）',
+                sections: ['① 研修・講演の概要', '② 学んだこと・重要トピック', '③ 自校・授業への応用アイデア', '④ 疑問点・今後の課題'],
+                highlightIdx: 2,
+                hint: '💡 学んだ内容に加えて「自分の授業・校務への応用アイデア」を自動提案します。出張復命書や自己研修レポートに最適です。'
+            }
+        };
+
         function getMinutesStyleLabel(style) {
-            const labels = {
-                standard: '標準バランス型',
-                meeting: '職員会議・決定重視',
-                training: '校内研修・学び整理',
-                report: '個人メモ・振り返りシート風'
-            };
-            return labels[style] || '標準バランス型';
+            return (MINUTES_STYLE_META[style] || MINUTES_STYLE_META.standard).label;
+        }
+
+        function updateMinutesStructurePreview(style) {
+            const meta = MINUTES_STYLE_META[style] || MINUTES_STYLE_META.standard;
+            const meterEl = document.getElementById('minutes-detail-meter');
+            const tagsEl = document.getElementById('minutes-structure-tags');
+            const hintEl = document.getElementById('minutes-usecase-hint');
+
+            if (meterEl) meterEl.textContent = meta.meter;
+            if (hintEl) hintEl.textContent = meta.hint;
+            if (tagsEl) {
+                tagsEl.innerHTML = meta.sections.map((sec, idx) => {
+                    const isHighlight = idx === meta.highlightIdx;
+                    const badgeClass = isHighlight
+                        ? 'px-2.5 py-1 rounded-lg font-bold bg-emerald-500/20 border border-emerald-400/50 text-emerald-400'
+                        : 'theme-input px-2.5 py-1 rounded-lg font-medium';
+                    const arrow = idx < meta.sections.length - 1
+                        ? '<i data-lucide="chevron-right" class="w-3.5 h-3.5 theme-text-muted"></i>'
+                        : '';
+                    return `<span class="${badgeClass}">${escapeHtml(sec)}</span>${arrow}`;
+                }).join('');
+                lucide.createIcons();
+            }
         }
 
         const minutesStyleButtons = document.querySelectorAll('.minutes-style-btn');
@@ -2336,11 +2429,12 @@
                 minutesStyleButtons.forEach((b) => {
                     const isSelected = b === btn;
                     if (isSelected) {
-                        b.className = "minutes-style-btn active px-3 py-2.5 rounded-xl text-xs font-bold border border-emerald-400 bg-emerald-500/20 text-emerald-300 transition text-left cursor-pointer";
+                        b.className = "minutes-style-btn active px-3 py-2.5 rounded-xl text-xs font-bold border border-emerald-400 bg-emerald-500/20 text-emerald-300 transition text-left cursor-pointer flex flex-col justify-between";
                     } else {
-                        b.className = "minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer";
+                        b.className = "minutes-style-btn theme-input px-3 py-2.5 rounded-xl text-xs font-bold hover:border-emerald-400/60 transition text-left cursor-pointer flex flex-col justify-between";
                     }
                 });
+                updateMinutesStructurePreview(selectedMinutesStyle);
             });
         });
 
